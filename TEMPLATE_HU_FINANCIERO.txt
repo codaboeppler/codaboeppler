@@ -1,0 +1,238 @@
+================================================================================
+TEMPLATE DE HISTORIAS DE USUARIO (HU) - SISTEMA FINANCIERO
+================================================================================
+Plataforma: Empenos, Prestamos, Apartados, Inventario, Perfil de Cliente
+Autor: PM Senior - Fintech LATAM
+Formato: Jerarquico para ClickUp
+================================================================================
+
+
+INSTRUCCIONES DE USO
+================================================================================
+
+Este template define el formato obligatorio para redactar Historias de Usuario
+en el equipo. Toda HU debe seguir la estructura jerarquica descrita abajo.
+
+Reglas:
+- NO usar tablas
+- NO usar markdown complejo
+- NO usar bullets simples
+- NO usar parrafos largos
+- TODO debe ser estructurado, jerarquico y claro
+- Listo para copiar directamente en ClickUp
+
+
+FORMATO JERARQUICO OBLIGATORIO
+================================================================================
+
+1. Titulo de la seccion
+   a. Sub-seccion
+      i. Descripcion funcional
+      ii. Detalle adicional
+         1. Subdetalle si aplica
+
+
+ESTILO DE REDACCION
+================================================================================
+
+- Lenguaje claro, funcional, sin relleno
+- Enfocado en comportamiento del sistema
+- Describe que ve el usuario, que puede hacer y que pasa en el sistema
+- Incluye logica de negocio cuando aplique
+- Incluye estados (expandido, colapsado, activo, inactivo, etc.)
+- Incluye validaciones cuando sean relevantes
+- Incluye calculos si hay montos o logica financiera
+
+
+CONTEXTO DEL PRODUCTO
+================================================================================
+
+El sistema es una plataforma de:
+- Empenos
+- Prestamos
+- Apartados
+- Inventario de articulos
+- Perfil de cliente con scoring
+- Contratos financieros
+
+Conceptos importantes:
+- "Propiedades dinamicas" = caracteristicas del articulo (ej: peso, color, modelo)
+- Contratos pueden ser empeno o prestamo
+- Acciones: refrendar, desempenar, liquidar, pagar cuota
+- Hay integracion con red externa (otras casas de empeno)
+
+
+CRITERIOS DE CALIDAD DE LA HU
+================================================================================
+
+Toda HU debe ser:
+- Lista para desarrollo
+- Lista para QA
+- Clara para negocio
+- Sin ambiguedades
+
+
+================================================================================
+EJEMPLO COMPLETO DE HU
+================================================================================
+
+HU-001: Detalle de deuda del cliente
+================================================================================
+
+1. Total de deuda
+   a. Componente
+      i. Se muestra el indicador "Total de deuda" dentro del perfil del cliente
+      ii. El monto se muestra en formato moneda MXN ($00,000.00)
+      iii. El indicador es visible siempre que el cliente tenga al menos un
+           contrato activo
+   b. Interaccion
+      i. Al hacer click en el indicador se expande el detalle de deuda
+      ii. Al hacer click nuevamente se colapsa
+      iii. Estado por defecto: colapsado
+   c. Detalle expandido
+      i. Se muestra una lista de contratos activos del cliente
+      ii. Cada contrato muestra:
+         1. Numero de contrato
+         2. Tipo (empeno / prestamo)
+         3. Monto pendiente
+         4. Fecha de vencimiento
+         5. Estatus (vigente, vencido, en proceso de liquidacion)
+      iii. El total mostrado en el indicador es la suma de todos los montos
+           pendientes
+   d. Validaciones
+      i. Si el cliente no tiene contratos activos, no se muestra el indicador
+      ii. Si el monto total es $0.00 pero hay contratos en proceso de
+          liquidacion, se muestra el indicador con $0.00 y la leyenda
+          "Liquidacion en proceso"
+   e. Logica de negocio
+      i. El calculo de deuda total incluye:
+         1. Capital pendiente
+         2. Intereses generados a la fecha
+         3. Cargos por mora si aplica
+      ii. No incluye:
+         1. Pagos programados a futuro
+         2. Contratos liquidados
+         3. Contratos cancelados
+
+
+================================================================================
+EJEMPLO HU - FLUJO DE REFRENDO
+================================================================================
+
+HU-002: Refrendar contrato de empeno
+================================================================================
+
+1. Acceso al refrendo
+   a. Ubicacion
+      i. El boton "Refrendar" se muestra en el detalle del contrato de empeno
+      ii. Solo es visible cuando el contrato esta en estatus "vigente" o
+          "vencido" (con tolerancia)
+   b. Permisos
+      i. Solo usuarios con rol "Cajero" o superior pueden ejecutar refrendo
+      ii. Si el usuario no tiene permiso, el boton no se muestra
+
+2. Calculo de refrendo
+   a. Componente
+      i. Al hacer click en "Refrendar" se abre un modal con el resumen del
+         calculo
+   b. Desglose del monto
+      i. Se muestra:
+         1. Interes del periodo actual
+         2. Cargos por mora (si aplica)
+         3. Almacenaje (si aplica)
+         4. IVA sobre intereses
+         5. Total a pagar por refrendo
+      ii. Formula: Total = Interes + Mora + Almacenaje + IVA
+   c. Interaccion
+      i. El usuario puede confirmar o cancelar
+      ii. Al confirmar se habilita el campo de metodo de pago
+
+3. Confirmacion y pago
+   a. Metodo de pago
+      i. Se muestra selector con opciones:
+         1. Efectivo
+         2. Tarjeta
+         3. Transferencia
+      ii. Cada metodo tiene su flujo de validacion especifico
+   b. Confirmacion
+      i. Al completar el pago, el sistema:
+         1. Registra el pago en el contrato
+         2. Genera nuevo periodo de vigencia
+         3. Actualiza fecha de vencimiento
+         4. Genera recibo de refrendo
+         5. Actualiza el estatus del contrato a "vigente"
+   c. Validaciones
+      i. No se puede refrendar si el contrato esta en proceso de desempeno
+      ii. No se puede refrendar si hay un pago pendiente de confirmar
+      iii. El monto minimo de refrendo es el interes del periodo sin descuentos
+
+4. Post-accion
+   a. Notificaciones
+      i. Se genera notificacion al cliente (si tiene datos de contacto)
+      ii. Se registra la operacion en el log de auditoria
+   b. Recibo
+      i. Se genera PDF con el detalle del refrendo
+      ii. Opcion de imprimir o enviar por correo
+
+
+================================================================================
+PLANTILLA EN BLANCO (COPIAR Y LLENAR)
+================================================================================
+
+HU-XXX: [Titulo descriptivo de la funcionalidad]
+================================================================================
+
+1. [Seccion principal]
+   a. [Sub-seccion]
+      i. [Descripcion funcional]
+      ii. [Detalle adicional]
+         1. [Subdetalle si aplica]
+   b. [Sub-seccion]
+      i. [Descripcion funcional]
+
+2. [Seccion principal]
+   a. [Sub-seccion]
+      i. [Descripcion funcional]
+   b. Validaciones
+      i. [Regla de validacion]
+      ii. [Regla de validacion]
+   c. Logica de negocio
+      i. [Calculo o regla de negocio]
+         1. [Detalle del calculo]
+
+3. [Seccion principal - Post-accion / Estados / Notificaciones]
+   a. [Sub-seccion]
+      i. [Descripcion funcional]
+
+
+================================================================================
+SECCIONES SUGERIDAS POR TIPO DE HU
+================================================================================
+
+Para HU de PANTALLA/COMPONENTE:
+   - Componente (que se muestra)
+   - Interaccion (que puede hacer el usuario)
+   - Estados (expandido, colapsado, activo, vacio, error)
+   - Validaciones
+   - Logica de negocio
+
+Para HU de FLUJO/PROCESO:
+   - Acceso / Punto de entrada
+   - Pasos del flujo
+   - Calculos (si hay montos)
+   - Confirmacion
+   - Post-accion (notificaciones, recibos, logs)
+   - Validaciones
+   - Casos de error
+
+Para HU de INTEGRACION:
+   - Trigger (que dispara la integracion)
+   - Request (que se envia)
+   - Response (que se espera recibir)
+   - Manejo de errores
+   - Reintentos
+   - Validaciones
+
+================================================================================
+FIN DEL TEMPLATE
+================================================================================
