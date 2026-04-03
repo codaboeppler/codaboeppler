@@ -1,0 +1,13 @@
+{
+  "name": "figma-hu-generator",
+  "version": "1.0.0",
+  "description": "Plugin de Figma para generar Historias de Usuario en formato jerarquico para sistemas financieros",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && mv code.js code.js.tmp || true",
+    "watch": "tsc -p tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.98.0",
+    "typescript": "^5.4.0"
+  }
+}

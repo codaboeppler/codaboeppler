@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      color: #333;
+      background: #f5f5f5;
+      padding: 16px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .selection-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .selection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      flex-shrink: 0;
+    }
+
+    .selection-dot.active {
+      background: #22c55e;
+    }
+
+    .selection-text {
+      font-size: 11px;
+      color: #666;
+      flex: 1;
+    }
+
+    .selection-text.active {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      background: white;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+
+    .btn-secondary:hover {
+      background: #f9f9f9;
+      border-color: #bbb;
+    }
+
+    .btn-copy {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: white;
+    }
+
+    .btn-copy:hover {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+
+    .result-area {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .result-area.visible {
+      display: block;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .result-header h3 {
+      font-size: 13px;
+      color: #333;
+    }
+
+    .result-output {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+      color: #1a1a2e;
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .actions-row .btn {
+      flex: 1;
+    }
+
+    .error-msg {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    .success-toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1a1a2e;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+
+    .success-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 16px 0;
+    }
+
+    .hint {
+      font-size: 10px;
+      color: #999;
+      margin-top: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Generador de HU Financiero</h1>
+    <p>Selecciona un frame en Figma y genera la Historia de Usuario</p>
+  </div>
+
+  <div class="selection-bar" id="selectionBar">
+    <div class="selection-dot" id="selectionDot"></div>
+    <span class="selection-text" id="selectionText">Sin seleccion - selecciona un frame</span>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Numero de HU</label>
+      <input type="text" id="huNumber" placeholder="001" value="001">
+    </div>
+    <div class="form-group">
+      <label>Tipo de HU</label>
+      <select id="huType">
+        <option value="screen">Pantalla / Componente</option>
+        <option value="process">Flujo / Proceso</option>
+        <option value="financial">Financiero (calculos)</option>
+        <option value="integration">Integracion</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Nombre de la pantalla</label>
+    <input type="text" id="screenName" placeholder="Se autodetecta del frame seleccionado">
+    <div class="hint">Dejar vacio para usar el nombre del frame</div>
+  </div>
+
+  <div class="form-group">
+    <label>Contexto adicional</label>
+    <textarea id="context" placeholder="Ej: Esta pantalla es el detalle de un contrato de empeno, donde el cajero puede ver los montos pendientes y ejecutar refrendo..."></textarea>
+    <div class="hint">Agrega contexto de negocio para una HU mas completa</div>
+  </div>
+
+  <button class="btn btn-primary" id="generateBtn" disabled>
+    Generar Historia de Usuario
+  </button>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="result-area" id="resultArea">
+    <div class="divider"></div>
+    <div class="result-header">
+      <h3>Historia de Usuario generada</h3>
+    </div>
+    <div class="result-output" id="resultOutput"></div>
+    <div class="actions-row">
+      <button class="btn btn-copy" id="copyBtn">
+        Copiar al portapapeles
+      </button>
+      <button class="btn btn-secondary" id="resetBtn">
+        Nueva HU
+      </button>
+    </div>
+  </div>
+
+  <div class="success-toast" id="toast">Copiado al portapapeles</div>
+
+  <script>
+    // Verificar seleccion al iniciar
+    parent.postMessage({ pluginMessage: { type: 'check-selection' } }, '*');
+
+    // Escuchar mensajes del plugin
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+
+      if (msg.type === 'selection-status') {
+        const dot = document.getElementById('selectionDot');
+        const text = document.getElementById('selectionText');
+        const btn = document.getElementById('generateBtn');
+
+        if (msg.hasSelection) {
+          dot.className = 'selection-dot active';
+          text.className = 'selection-text active';
+          text.textContent = `${msg.selectionType}: "${msg.selectionName}"`;
+          btn.disabled = false;
+
+          // Auto-fill screen name if empty
+          const screenInput = document.getElementById('screenName');
+          if (!screenInput.value) {
+            screenInput.placeholder = msg.selectionName;
+          }
+        } else {
+          dot.className = 'selection-dot';
+          text.className = 'selection-text';
+          text.textContent = 'Sin seleccion - selecciona un frame';
+          btn.disabled = true;
+        }
+      }
+
+      if (msg.type === 'result') {
+        document.getElementById('resultOutput').textContent = msg.hu;
+        document.getElementById('resultArea').className = 'result-area visible';
+        document.getElementById('errorMsg').className = 'error-msg';
+      }
+
+      if (msg.type === 'error') {
+        const errorEl = document.getElementById('errorMsg');
+        errorEl.textContent = msg.message;
+        errorEl.className = 'error-msg visible';
+      }
+    };
+
+    // Generar HU
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      const screenName = document.getElementById('screenName').value;
+      const huNumber = document.getElementById('huNumber').value || 'XXX';
+      const huType = document.getElementById('huType').value;
+      const context = document.getElementById('context').value;
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate',
+          screenName: screenName,
+          huNumber: huNumber,
+          huType: huType,
+          context: context
+        }
+      }, '*');
+    });
+
+    // Copiar al portapapeles
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('resultOutput').textContent;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      const toast = document.getElementById('toast');
+      toast.className = 'success-toast show';
+      setTimeout(() => {
+        toast.className = 'success-toast';
+      }, 2000);
+    });
+
+    // Reset
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('resultArea').className = 'result-area';
+      document.getElementById('screenName').value = '';
+      document.getElementById('context').value = '';
+      document.getElementById('huNumber').value = '';
+      document.getElementById('errorMsg').className = 'error-msg';
+    });
+  </script>
+</body>
+</html>
