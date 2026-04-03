@@ -1,5 +1,5 @@
 {
-  "name": "Generador de HU Financiero",
+  "name": "Generador de HU",
   "id": "hu-generator-fintech",
   "api": "1.0.0",
   "main": "code.js",
