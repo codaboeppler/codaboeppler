@@ -10,7 +10,7 @@
   "networkAccess": {
     "allowedDomains": [
       "https://api.clickup.com",
-      "https://hu-license-api.vercel.app"
+      "https://codaboeppler.vercel.app"
     ]
   }
 }

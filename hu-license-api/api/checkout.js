@@ -24,8 +24,8 @@ module.exports = async function handler(req, res) {
           quantity: 1
         }
       ],
-      success_url: 'https://hu-generator-pro.vercel.app/success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'https://hu-generator-pro.vercel.app/cancel',
+      success_url: 'https://codaboeppler.vercel.app/api/success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://codaboeppler.vercel.app/',
       metadata: {
         product: 'hu-generator-pro'
       }
