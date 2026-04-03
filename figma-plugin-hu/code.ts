@@ -1,7 +1,7 @@
 // Generador de HU Financiero - Figma Plugin
 // Analiza la seleccion actual y genera Historias de Usuario en formato jerarquico
 
-figma.showUI(__html__, { width: 520, height: 700 });
+figma.showUI(__html__, { width: 520, height: 780 });
 
 interface InputErrorInfo {
   fieldName: string;
@@ -619,8 +619,21 @@ function countNodes(node: ComponentInfo): number {
   return count;
 }
 
+// Exporta el frame seleccionado como PNG (base64)
+async function exportFrameAsPng(node: SceneNode): Promise<Uint8Array | null> {
+  try {
+    const bytes = await node.exportAsync({
+      format: 'PNG',
+      constraint: { type: 'SCALE', value: 2 }
+    });
+    return bytes;
+  } catch (_e) {
+    return null;
+  }
+}
+
 // Escuchar mensajes del UI
-figma.ui.onmessage = (msg) => {
+figma.ui.onmessage = async (msg) => {
   if (msg.type === 'generate') {
     const selection = figma.currentPage.selection;
 
@@ -646,6 +659,51 @@ figma.ui.onmessage = (msg) => {
       type: 'result',
       hu: hu,
       nodeName: node.name
+    });
+  }
+
+  // Exportar screenshot del frame seleccionado para adjuntar a ClickUp
+  if (msg.type === 'export-screenshot') {
+    const selection = figma.currentPage.selection;
+    if (selection.length === 0) {
+      figma.ui.postMessage({
+        type: 'screenshot-error',
+        message: 'No hay frame seleccionado para exportar.'
+      });
+      return;
+    }
+
+    const node = selection[0];
+    const pngBytes = await exportFrameAsPng(node);
+    if (pngBytes) {
+      figma.ui.postMessage({
+        type: 'screenshot-ready',
+        bytes: Array.from(pngBytes),
+        fileName: `${node.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.png`
+      });
+    } else {
+      figma.ui.postMessage({
+        type: 'screenshot-error',
+        message: 'No se pudo exportar el frame como imagen.'
+      });
+    }
+  }
+
+  // Guardar configuracion de ClickUp en clientStorage
+  if (msg.type === 'save-clickup-config') {
+    await figma.clientStorage.setAsync('clickup_api_token', msg.apiToken || '');
+    await figma.clientStorage.setAsync('clickup_workspace_id', msg.workspaceId || '');
+    figma.ui.postMessage({ type: 'config-saved' });
+  }
+
+  // Cargar configuracion de ClickUp desde clientStorage
+  if (msg.type === 'load-clickup-config') {
+    const apiToken = await figma.clientStorage.getAsync('clickup_api_token') || '';
+    const workspaceId = await figma.clientStorage.getAsync('clickup_workspace_id') || '';
+    figma.ui.postMessage({
+      type: 'config-loaded',
+      apiToken: apiToken,
+      workspaceId: workspaceId
     });
   }
 

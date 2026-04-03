@@ -2,39 +2,58 @@
 <html>
 <head>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 12px;
       color: #333;
       background: #f5f5f5;
-      padding: 16px;
+      padding: 0;
     }
 
+    /* ===== TABS ===== */
+    .tab-bar {
+      display: flex;
+      background: #1a1a2e;
+      border-bottom: 2px solid #16213e;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tab:hover { color: rgba(255,255,255,0.8); }
+    .tab.active {
+      color: white;
+      border-bottom-color: #7c3aed;
+      background: rgba(124, 58, 237, 0.1);
+    }
+
+    .tab-content { display: none; padding: 16px; }
+    .tab-content.active { display: block; }
+
+    /* ===== HEADER ===== */
     .header {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       color: white;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 16px;
+      padding: 14px 16px;
     }
 
-    .header h1 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
+    .header h1 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .header p { font-size: 10px; opacity: 0.6; }
 
-    .header p {
-      font-size: 11px;
-      opacity: 0.7;
-    }
-
+    /* ===== COMMON ===== */
     .selection-bar {
       display: flex;
       align-items: center;
@@ -47,31 +66,18 @@
     }
 
     .selection-dot {
-      width: 8px;
-      height: 8px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: #ccc;
       flex-shrink: 0;
     }
 
-    .selection-dot.active {
-      background: #22c55e;
-    }
+    .selection-dot.active { background: #22c55e; }
 
-    .selection-text {
-      font-size: 11px;
-      color: #666;
-      flex: 1;
-    }
+    .selection-text { font-size: 11px; color: #666; flex: 1; }
+    .selection-text.active { color: #333; font-weight: 500; }
 
-    .selection-text.active {
-      color: #333;
-      font-weight: 500;
-    }
-
-    .form-group {
-      margin-bottom: 12px;
-    }
+    .form-group { margin-bottom: 12px; }
 
     .form-group label {
       display: block;
@@ -104,19 +110,10 @@
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
     }
 
-    .form-group textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
 
-    .form-row {
-      display: flex;
-      gap: 12px;
-    }
-
-    .form-row .form-group {
-      flex: 1;
-    }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
 
     .btn {
       display: inline-flex;
@@ -137,13 +134,11 @@
       background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       color: white;
     }
-
     .btn-primary:hover {
       background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
-
     .btn-primary:disabled {
       background: #ccc;
       cursor: not-allowed;
@@ -156,29 +151,37 @@
       color: #333;
       border: 1px solid #ddd;
     }
-
-    .btn-secondary:hover {
-      background: #f9f9f9;
-      border-color: #bbb;
-    }
+    .btn-secondary:hover { background: #f9f9f9; border-color: #bbb; }
 
     .btn-copy {
       background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
       color: white;
     }
+    .btn-copy:hover { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
 
-    .btn-copy:hover {
-      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    .btn-clickup {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
+    }
+    .btn-clickup:hover {
+      background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+    }
+    .btn-clickup:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
-    .result-area {
-      display: none;
-      margin-top: 16px;
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
     }
 
-    .result-area.visible {
-      display: block;
-    }
+    .result-area { display: none; margin-top: 16px; }
+    .result-area.visible { display: block; }
 
     .result-header {
       display: flex;
@@ -186,11 +189,7 @@
       justify-content: space-between;
       margin-bottom: 8px;
     }
-
-    .result-header h3 {
-      font-size: 13px;
-      color: #333;
-    }
+    .result-header h3 { font-size: 13px; color: #333; }
 
     .result-output {
       background: white;
@@ -201,20 +200,13 @@
       font-size: 11px;
       line-height: 1.5;
       white-space: pre-wrap;
-      max-height: 300px;
+      max-height: 250px;
       overflow-y: auto;
       color: #1a1a2e;
     }
 
-    .actions-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .actions-row .btn {
-      flex: 1;
-    }
+    .actions-row { display: flex; gap: 8px; margin-top: 8px; }
+    .actions-row .btn { flex: 1; }
 
     .error-msg {
       background: #fef2f2;
@@ -226,10 +218,19 @@
       margin-top: 8px;
       display: none;
     }
+    .error-msg.visible { display: block; }
 
-    .error-msg.visible {
-      display: block;
+    .success-msg {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      margin-top: 8px;
+      display: none;
     }
+    .success-msg.visible { display: block; }
 
     .success-toast {
       position: fixed;
@@ -245,94 +246,717 @@
       transition: transform 0.3s ease;
       z-index: 100;
     }
+    .success-toast.show { transform: translateX(-50%) translateY(0); }
 
-    .success-toast.show {
-      transform: translateX(-50%) translateY(0);
+    .divider { height: 1px; background: #e5e7eb; margin: 16px 0; }
+    .hint { font-size: 10px; color: #999; margin-top: 3px; }
+
+    /* ===== CLICKUP CONFIG ===== */
+    .config-card {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
     }
 
-    .divider {
-      height: 1px;
-      background: #e5e7eb;
-      margin: 16px 0;
+    .config-card h4 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1a1a2e;
     }
 
-    .hint {
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
       font-size: 10px;
-      color: #999;
-      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .status-badge.connected { background: #dcfce7; color: #16a34a; }
+    .status-badge.disconnected { background: #fef2f2; color: #dc2626; }
+
+    .clickup-path {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: #495057;
+      margin-top: 8px;
+    }
+
+    .clickup-path .path-item {
+      color: #7c3aed;
+      font-weight: 600;
+    }
+
+    .clickup-path .path-separator {
+      color: #ccc;
+      margin: 0 4px;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+    }
+    .loader.dark {
+      border-color: rgba(0,0,0,0.1);
+      border-top-color: #7c3aed;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .publish-section { margin-top: 12px; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #7c3aed;
+    }
+
+    .checkbox-row label {
+      font-size: 12px;
+      color: #333;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+    }
+
+    .task-link {
+      display: block;
+      background: #f3f0ff;
+      border: 1px solid #ddd6fe;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #7c3aed;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 8px;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Generador de HU Financiero</h1>
-    <p>Selecciona un frame en Figma y genera la Historia de Usuario</p>
+    <h1>HU Generator + ClickUp</h1>
+    <p>Genera HUs desde Figma y publica directo a ClickUp</p>
   </div>
 
-  <div class="selection-bar" id="selectionBar">
-    <div class="selection-dot" id="selectionDot"></div>
-    <span class="selection-text" id="selectionText">Sin seleccion - selecciona un frame</span>
+  <!-- TABS -->
+  <div class="tab-bar">
+    <div class="tab active" data-tab="generate">Generar HU</div>
+    <div class="tab" data-tab="publish">Publicar a ClickUp</div>
+    <div class="tab" data-tab="config">Configuracion</div>
   </div>
 
-  <div class="form-row">
+  <!-- ==================== TAB 1: GENERAR ==================== -->
+  <div class="tab-content active" id="tab-generate">
+    <div class="selection-bar" id="selectionBar">
+      <div class="selection-dot" id="selectionDot"></div>
+      <span class="selection-text" id="selectionText">Sin seleccion - selecciona un frame</span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Numero de HU</label>
+        <input type="text" id="huNumber" placeholder="001" value="001">
+      </div>
+      <div class="form-group">
+        <label>Tipo de HU</label>
+        <select id="huType">
+          <option value="screen">Pantalla / Componente</option>
+          <option value="process">Flujo / Proceso</option>
+          <option value="financial">Financiero (calculos)</option>
+          <option value="integration">Integracion</option>
+        </select>
+      </div>
+    </div>
+
     <div class="form-group">
-      <label>Numero de HU</label>
-      <input type="text" id="huNumber" placeholder="001" value="001">
+      <label>Nombre de la pantalla</label>
+      <input type="text" id="screenName" placeholder="Se autodetecta del frame seleccionado">
+      <div class="hint">Dejar vacio para usar el nombre del frame</div>
     </div>
+
     <div class="form-group">
-      <label>Tipo de HU</label>
-      <select id="huType">
-        <option value="screen">Pantalla / Componente</option>
-        <option value="process">Flujo / Proceso</option>
-        <option value="financial">Financiero (calculos)</option>
-        <option value="integration">Integracion</option>
-      </select>
+      <label>Contexto adicional</label>
+      <textarea id="context" placeholder="Ej: Esta pantalla es el detalle de un contrato de empeno..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="generateBtn" disabled>
+      Generar Historia de Usuario
+    </button>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="result-area" id="resultArea">
+      <div class="divider"></div>
+      <div class="result-header">
+        <h3>Historia de Usuario generada</h3>
+      </div>
+      <div class="result-output" id="resultOutput"></div>
+      <div class="actions-row">
+        <button class="btn btn-copy" id="copyBtn">Copiar</button>
+        <button class="btn btn-clickup" id="goPublishBtn">Publicar en ClickUp</button>
+        <button class="btn btn-secondary" id="resetBtn">Nueva</button>
+      </div>
     </div>
   </div>
 
-  <div class="form-group">
-    <label>Nombre de la pantalla</label>
-    <input type="text" id="screenName" placeholder="Se autodetecta del frame seleccionado">
-    <div class="hint">Dejar vacio para usar el nombre del frame</div>
-  </div>
+  <!-- ==================== TAB 2: PUBLICAR ==================== -->
+  <div class="tab-content" id="tab-publish">
 
-  <div class="form-group">
-    <label>Contexto adicional</label>
-    <textarea id="context" placeholder="Ej: Esta pantalla es el detalle de un contrato de empeno, donde el cajero puede ver los montos pendientes y ejecutar refrendo..."></textarea>
-    <div class="hint">Agrega contexto de negocio para una HU mas completa</div>
-  </div>
-
-  <button class="btn btn-primary" id="generateBtn" disabled>
-    Generar Historia de Usuario
-  </button>
-
-  <div class="error-msg" id="errorMsg"></div>
-
-  <div class="result-area" id="resultArea">
-    <div class="divider"></div>
-    <div class="result-header">
-      <h3>Historia de Usuario generada</h3>
+    <div id="publishNoHU" style="text-align:center; padding: 40px 16px; color: #999;">
+      <p style="font-size: 14px; margin-bottom: 8px;">No hay HU generada</p>
+      <p style="font-size: 11px;">Ve a la pestana "Generar HU" primero</p>
     </div>
-    <div class="result-output" id="resultOutput"></div>
-    <div class="actions-row">
-      <button class="btn btn-copy" id="copyBtn">
-        Copiar al portapapeles
+
+    <div id="publishReady" style="display:none;">
+      <!-- Conexion status -->
+      <div class="config-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>ClickUp</h4>
+          <span class="status-badge disconnected" id="publishStatus">Desconectado</span>
+        </div>
+      </div>
+
+      <!-- Seleccionar destino -->
+      <div class="config-card">
+        <h4>Destino en ClickUp</h4>
+
+        <div class="form-group">
+          <label>Workspace</label>
+          <select id="selWorkspace" disabled>
+            <option value="">-- Conecta tu API key primero --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Space</label>
+          <select id="selSpace" disabled>
+            <option value="">-- Selecciona workspace --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Folder (opcional)</label>
+          <select id="selFolder" disabled>
+            <option value="">-- Sin folder / raiz --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Lista (Backlog)</label>
+          <select id="selList" disabled>
+            <option value="">-- Selecciona space --</option>
+          </select>
+        </div>
+
+        <div id="selectedPath" class="clickup-path" style="display:none;">
+          <span class="path-item" id="pathWorkspace"></span>
+          <span class="path-separator">/</span>
+          <span class="path-item" id="pathSpace"></span>
+          <span class="path-separator">/</span>
+          <span class="path-item" id="pathList"></span>
+        </div>
+      </div>
+
+      <!-- Opciones -->
+      <div class="config-card">
+        <h4>Opciones de publicacion</h4>
+
+        <div class="form-group">
+          <label>Titulo de la tarea</label>
+          <input type="text" id="taskTitle" placeholder="HU-001: Nombre de la pantalla">
+        </div>
+
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select id="taskPriority">
+            <option value="3">Normal</option>
+            <option value="2">Alta</option>
+            <option value="1">Urgente</option>
+            <option value="4">Baja</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tags (separados por coma)</label>
+          <input type="text" id="taskTags" placeholder="hu, figma, backlog">
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="attachScreenshot" checked>
+          <label for="attachScreenshot">Adjuntar screenshot del frame de Figma</label>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="addFigmaLink" checked>
+          <label for="addFigmaLink">Incluir link al archivo de Figma en la descripcion</label>
+        </div>
+      </div>
+
+      <!-- Boton publicar -->
+      <button class="btn btn-clickup" id="publishBtn" disabled>
+        Publicar HU en ClickUp
       </button>
-      <button class="btn btn-secondary" id="resetBtn">
-        Nueva HU
+
+      <div class="error-msg" id="publishError"></div>
+      <div class="success-msg" id="publishSuccess"></div>
+      <a class="task-link" id="taskLink" style="display:none;" target="_blank"></a>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 3: CONFIGURACION ==================== -->
+  <div class="tab-content" id="tab-config">
+    <div class="config-card">
+      <h4>API Token de ClickUp</h4>
+      <div class="form-group">
+        <label>Token personal</label>
+        <input type="password" id="apiToken" placeholder="pk_XXXXXXXXX...">
+        <div class="hint">
+          Obtenlo en ClickUp > Settings > Apps > API Token
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="testConnectionBtn">
+        Probar conexion
       </button>
+
+      <div class="error-msg" id="configError"></div>
+      <div class="success-msg" id="configSuccess"></div>
+    </div>
+
+    <div class="config-card">
+      <h4>Estado de conexion</h4>
+      <div id="connectionInfo" style="font-size: 11px; color: #666;">
+        No configurado. Ingresa tu API Token arriba.
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h4>Acciones</h4>
+      <div class="actions-row">
+        <button class="btn btn-secondary" id="saveConfigBtn">Guardar config</button>
+        <button class="btn btn-danger" id="clearConfigBtn">Borrar config</button>
+      </div>
     </div>
   </div>
 
   <div class="success-toast" id="toast">Copiado al portapapeles</div>
 
   <script>
-    // Verificar seleccion al iniciar
-    parent.postMessage({ pluginMessage: { type: 'check-selection' } }, '*');
+    // ===================== STATE =====================
+    let currentHU = '';
+    let currentHUTitle = '';
+    let screenshotBytes = null;
+    let screenshotFileName = '';
+    let clickupToken = '';
+    let clickupUser = null;
 
-    // Escuchar mensajes del plugin
-    window.onmessage = (event) => {
+    // Cache de datos de ClickUp
+    let workspaces = [];
+    let spaces = [];
+    let folders = [];
+    let lists = [];
+
+    // ===================== TABS =====================
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ===================== INIT =====================
+    parent.postMessage({ pluginMessage: { type: 'check-selection' } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'load-clickup-config' } }, '*');
+
+    // ===================== CLICKUP API =====================
+    async function clickupFetch(endpoint, options = {}) {
+      if (!clickupToken) throw new Error('No API token configured');
+      const resp = await fetch('https://api.clickup.com/api/v2' + endpoint, {
+        ...options,
+        headers: {
+          'Authorization': clickupToken,
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        throw new Error(`ClickUp API error ${resp.status}: ${err}`);
+      }
+      return resp.json();
+    }
+
+    async function testConnection() {
+      const data = await clickupFetch('/user');
+      clickupUser = data.user;
+      return data.user;
+    }
+
+    async function loadWorkspaces() {
+      const data = await clickupFetch('/team');
+      workspaces = data.teams || [];
+      return workspaces;
+    }
+
+    async function loadSpaces(teamId) {
+      const data = await clickupFetch('/team/' + teamId + '/space?archived=false');
+      spaces = data.spaces || [];
+      return spaces;
+    }
+
+    async function loadFolders(spaceId) {
+      const data = await clickupFetch('/space/' + spaceId + '/folder?archived=false');
+      folders = data.folders || [];
+      return folders;
+    }
+
+    async function loadFolderlessLists(spaceId) {
+      const data = await clickupFetch('/space/' + spaceId + '/list?archived=false');
+      return data.lists || [];
+    }
+
+    async function loadFolderLists(folderId) {
+      const data = await clickupFetch('/folder/' + folderId + '/list?archived=false');
+      return data.lists || [];
+    }
+
+    async function createTask(listId, name, description, priority, tags) {
+      const body = {
+        name: name,
+        description: description,
+        priority: parseInt(priority),
+        tags: tags.filter(t => t.trim()),
+        markdown_description: description
+      };
+      return clickupFetch('/list/' + listId + '/task', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+    }
+
+    async function attachFileToTask(taskId, fileBytes, fileName) {
+      const blob = new Blob([new Uint8Array(fileBytes)], { type: 'image/png' });
+      const formData = new FormData();
+      formData.append('attachment', blob, fileName);
+
+      const resp = await fetch('https://api.clickup.com/api/v2/task/' + taskId + '/attachment', {
+        method: 'POST',
+        headers: { 'Authorization': clickupToken },
+        body: formData
+      });
+
+      if (!resp.ok) throw new Error('Error al adjuntar imagen: ' + resp.status);
+      return resp.json();
+    }
+
+    // ===================== POPULATE SELECTS =====================
+    function populateSelect(selectId, items, defaultText) {
+      const sel = document.getElementById(selectId);
+      sel.innerHTML = '<option value="">' + defaultText + '</option>';
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.name;
+        sel.appendChild(opt);
+      });
+      sel.disabled = items.length === 0;
+    }
+
+    // ===================== EVENT LISTENERS =====================
+
+    // Workspace change -> load spaces
+    document.getElementById('selWorkspace').addEventListener('change', async (e) => {
+      const teamId = e.target.value;
+      document.getElementById('selSpace').innerHTML = '<option value="">Cargando...</option>';
+      document.getElementById('selFolder').innerHTML = '<option value="">-- Sin folder / raiz --</option>';
+      document.getElementById('selFolder').disabled = true;
+      document.getElementById('selList').innerHTML = '<option value="">-- Selecciona space --</option>';
+      document.getElementById('selList').disabled = true;
+      updatePath();
+
+      if (!teamId) return;
+      try {
+        const s = await loadSpaces(teamId);
+        populateSelect('selSpace', s, '-- Selecciona space --');
+      } catch (err) {
+        showError('publishError', err.message);
+      }
+    });
+
+    // Space change -> load folders + folderless lists
+    document.getElementById('selSpace').addEventListener('change', async (e) => {
+      const spaceId = e.target.value;
+      document.getElementById('selFolder').innerHTML = '<option value="">Cargando...</option>';
+      document.getElementById('selList').innerHTML = '<option value="">Cargando...</option>';
+      updatePath();
+
+      if (!spaceId) return;
+      try {
+        const [f, fl] = await Promise.all([
+          loadFolders(spaceId),
+          loadFolderlessLists(spaceId)
+        ]);
+
+        // Folders
+        const folderItems = [{ id: '', name: '-- Sin folder (listas raiz) --' }, ...f];
+        populateSelect('selFolder', f, '-- Sin folder (listas raiz) --');
+        document.getElementById('selFolder').disabled = false;
+
+        // Folderless lists
+        lists = fl;
+        populateSelect('selList', fl, '-- Selecciona lista --');
+        updatePath();
+      } catch (err) {
+        showError('publishError', err.message);
+      }
+    });
+
+    // Folder change -> load folder lists
+    document.getElementById('selFolder').addEventListener('change', async (e) => {
+      const folderId = e.target.value;
+      document.getElementById('selList').innerHTML = '<option value="">Cargando...</option>';
+
+      if (!folderId) {
+        // Reload folderless lists
+        const spaceId = document.getElementById('selSpace').value;
+        if (spaceId) {
+          const fl = await loadFolderlessLists(spaceId);
+          lists = fl;
+          populateSelect('selList', fl, '-- Selecciona lista --');
+        }
+        updatePath();
+        return;
+      }
+
+      try {
+        const fl = await loadFolderLists(folderId);
+        lists = fl;
+        populateSelect('selList', fl, '-- Selecciona lista --');
+        updatePath();
+      } catch (err) {
+        showError('publishError', err.message);
+      }
+    });
+
+    // List change -> enable publish
+    document.getElementById('selList').addEventListener('change', () => {
+      const listId = document.getElementById('selList').value;
+      document.getElementById('publishBtn').disabled = !listId;
+      updatePath();
+    });
+
+    function updatePath() {
+      const ws = document.getElementById('selWorkspace');
+      const sp = document.getElementById('selSpace');
+      const li = document.getElementById('selList');
+      const pathEl = document.getElementById('selectedPath');
+
+      if (ws.value && sp.value && li.value) {
+        document.getElementById('pathWorkspace').textContent = ws.options[ws.selectedIndex].text;
+        document.getElementById('pathSpace').textContent = sp.options[sp.selectedIndex].text;
+        document.getElementById('pathList').textContent = li.options[li.selectedIndex].text;
+        pathEl.style.display = 'block';
+      } else {
+        pathEl.style.display = 'none';
+      }
+    }
+
+    // ===================== TEST CONNECTION =====================
+    document.getElementById('testConnectionBtn').addEventListener('click', async () => {
+      const token = document.getElementById('apiToken').value.trim();
+      if (!token) {
+        showError('configError', 'Ingresa un API Token');
+        return;
+      }
+
+      clickupToken = token;
+      const btn = document.getElementById('testConnectionBtn');
+      btn.innerHTML = '<span class="loader"></span> Conectando...';
+      btn.disabled = true;
+
+      try {
+        const user = await testConnection();
+        hideError('configError');
+        showSuccess('configSuccess', 'Conectado como: ' + user.username + ' (' + user.email + ')');
+        document.getElementById('connectionInfo').innerHTML =
+          '<strong style="color:#16a34a;">Conectado</strong> como ' + user.username + ' (' + user.email + ')';
+
+        // Auto-save
+        parent.postMessage({
+          pluginMessage: {
+            type: 'save-clickup-config',
+            apiToken: token
+          }
+        }, '*');
+
+        // Update publish tab
+        updatePublishStatus(true);
+
+        // Load workspaces for publish tab
+        const ws = await loadWorkspaces();
+        populateSelect('selWorkspace', ws, '-- Selecciona workspace --');
+
+      } catch (err) {
+        hideSuccess('configSuccess');
+        showError('configError', 'Error de conexion: ' + err.message);
+        updatePublishStatus(false);
+      }
+
+      btn.innerHTML = 'Probar conexion';
+      btn.disabled = false;
+    });
+
+    // ===================== SAVE / CLEAR CONFIG =====================
+    document.getElementById('saveConfigBtn').addEventListener('click', () => {
+      const token = document.getElementById('apiToken').value.trim();
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-clickup-config',
+          apiToken: token
+        }
+      }, '*');
+      showToast('Configuracion guardada');
+    });
+
+    document.getElementById('clearConfigBtn').addEventListener('click', () => {
+      document.getElementById('apiToken').value = '';
+      clickupToken = '';
+      clickupUser = null;
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-clickup-config',
+          apiToken: ''
+        }
+      }, '*');
+      document.getElementById('connectionInfo').innerHTML = 'No configurado.';
+      updatePublishStatus(false);
+      showToast('Configuracion borrada');
+    });
+
+    // ===================== GENERATE HU =====================
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate',
+          screenName: document.getElementById('screenName').value,
+          huNumber: document.getElementById('huNumber').value || 'XXX',
+          huType: document.getElementById('huType').value,
+          context: document.getElementById('context').value
+        }
+      }, '*');
+    });
+
+    // ===================== GO TO PUBLISH TAB =====================
+    document.getElementById('goPublishBtn').addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab')[1].classList.add('active');
+      document.getElementById('tab-publish').classList.add('active');
+    });
+
+    // ===================== PUBLISH TO CLICKUP =====================
+    document.getElementById('publishBtn').addEventListener('click', async () => {
+      const listId = document.getElementById('selList').value;
+      if (!listId || !currentHU) return;
+
+      const btn = document.getElementById('publishBtn');
+      btn.innerHTML = '<span class="loader"></span> Publicando...';
+      btn.disabled = true;
+      hideError('publishError');
+      hideSuccess('publishSuccess');
+      document.getElementById('taskLink').style.display = 'none';
+
+      try {
+        const title = document.getElementById('taskTitle').value || currentHUTitle;
+        const priority = document.getElementById('taskPriority').value;
+        const tagsRaw = document.getElementById('taskTags').value;
+        const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()) : [];
+        const addLink = document.getElementById('addFigmaLink').checked;
+
+        let description = currentHU;
+        if (addLink) {
+          // Figma file link
+          description += '\n\n---\nFigma: [Abrir en Figma](https://www.figma.com)';
+        }
+
+        // Create task
+        const task = await createTask(listId, title, description, priority, tags);
+
+        // Attach screenshot if checked
+        if (document.getElementById('attachScreenshot').checked) {
+          // Request screenshot from plugin
+          parent.postMessage({ pluginMessage: { type: 'export-screenshot' } }, '*');
+          // Wait for screenshot and attach (handled in onmessage)
+          window._pendingTaskId = task.id;
+        }
+
+        showSuccess('publishSuccess', 'Tarea creada exitosamente en ClickUp');
+
+        const link = document.getElementById('taskLink');
+        link.href = task.url;
+        link.textContent = 'Abrir tarea: ' + task.name;
+        link.style.display = 'block';
+
+      } catch (err) {
+        showError('publishError', 'Error al publicar: ' + err.message);
+      }
+
+      btn.innerHTML = 'Publicar HU en ClickUp';
+      btn.disabled = false;
+    });
+
+    // ===================== COPY =====================
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('resultOutput').textContent;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('Copiado al portapapeles');
+    });
+
+    // ===================== RESET =====================
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('resultArea').className = 'result-area';
+      document.getElementById('screenName').value = '';
+      document.getElementById('context').value = '';
+      document.getElementById('huNumber').value = '';
+      hideError('errorMsg');
+      currentHU = '';
+      currentHUTitle = '';
+      updatePublishReadyState();
+    });
+
+    // ===================== MESSAGES FROM PLUGIN =====================
+    window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
+      if (!msg) return;
 
       if (msg.type === 'selection-status') {
         const dot = document.getElementById('selectionDot');
@@ -342,10 +966,9 @@
         if (msg.hasSelection) {
           dot.className = 'selection-dot active';
           text.className = 'selection-text active';
-          text.textContent = `${msg.selectionType}: "${msg.selectionName}"`;
+          text.textContent = msg.selectionType + ': "' + msg.selectionName + '"';
           btn.disabled = false;
 
-          // Auto-fill screen name if empty
           const screenInput = document.getElementById('screenName');
           if (!screenInput.value) {
             screenInput.placeholder = msg.selectionName;
@@ -359,61 +982,119 @@
       }
 
       if (msg.type === 'result') {
+        currentHU = msg.hu;
+        currentHUTitle = 'HU-' + (document.getElementById('huNumber').value || 'XXX') + ': ' +
+          (document.getElementById('screenName').value || msg.nodeName);
+
         document.getElementById('resultOutput').textContent = msg.hu;
         document.getElementById('resultArea').className = 'result-area visible';
-        document.getElementById('errorMsg').className = 'error-msg';
+        hideError('errorMsg');
+
+        // Pre-fill publish tab
+        document.getElementById('taskTitle').value = currentHUTitle;
+        updatePublishReadyState();
       }
 
       if (msg.type === 'error') {
-        const errorEl = document.getElementById('errorMsg');
-        errorEl.textContent = msg.message;
-        errorEl.className = 'error-msg visible';
+        showError('errorMsg', msg.message);
+      }
+
+      if (msg.type === 'config-loaded') {
+        if (msg.apiToken) {
+          document.getElementById('apiToken').value = msg.apiToken;
+          clickupToken = msg.apiToken;
+          // Auto-test connection
+          try {
+            const user = await testConnection();
+            document.getElementById('connectionInfo').innerHTML =
+              '<strong style="color:#16a34a;">Conectado</strong> como ' + user.username;
+            updatePublishStatus(true);
+            const ws = await loadWorkspaces();
+            populateSelect('selWorkspace', ws, '-- Selecciona workspace --');
+          } catch (_e) {
+            updatePublishStatus(false);
+          }
+        }
+      }
+
+      if (msg.type === 'config-saved') {
+        // silently handled
+      }
+
+      if (msg.type === 'screenshot-ready') {
+        screenshotBytes = msg.bytes;
+        screenshotFileName = msg.fileName;
+        // If there's a pending task, attach it
+        if (window._pendingTaskId) {
+          try {
+            await attachFileToTask(window._pendingTaskId, screenshotBytes, screenshotFileName);
+            showToast('Screenshot adjuntado');
+          } catch (err) {
+            console.error('Error adjuntando screenshot:', err);
+          }
+          window._pendingTaskId = null;
+        }
+      }
+
+      if (msg.type === 'screenshot-error') {
+        console.error('Screenshot error:', msg.message);
+        window._pendingTaskId = null;
       }
     };
 
-    // Generar HU
-    document.getElementById('generateBtn').addEventListener('click', () => {
-      const screenName = document.getElementById('screenName').value;
-      const huNumber = document.getElementById('huNumber').value || 'XXX';
-      const huType = document.getElementById('huType').value;
-      const context = document.getElementById('context').value;
+    // ===================== HELPERS =====================
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = 'error-msg visible';
+    }
 
-      parent.postMessage({
-        pluginMessage: {
-          type: 'generate',
-          screenName: screenName,
-          huNumber: huNumber,
-          huType: huType,
-          context: context
-        }
-      }, '*');
-    });
+    function hideError(id) {
+      document.getElementById(id).className = 'error-msg';
+    }
 
-    // Copiar al portapapeles
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      const text = document.getElementById('resultOutput').textContent;
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
+    function showSuccess(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = 'success-msg visible';
+    }
 
+    function hideSuccess(id) {
+      document.getElementById(id).className = 'success-msg';
+    }
+
+    function showToast(msg) {
       const toast = document.getElementById('toast');
+      toast.textContent = msg;
       toast.className = 'success-toast show';
-      setTimeout(() => {
-        toast.className = 'success-toast';
-      }, 2000);
-    });
+      setTimeout(() => { toast.className = 'success-toast'; }, 2000);
+    }
 
-    // Reset
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      document.getElementById('resultArea').className = 'result-area';
-      document.getElementById('screenName').value = '';
-      document.getElementById('context').value = '';
-      document.getElementById('huNumber').value = '';
-      document.getElementById('errorMsg').className = 'error-msg';
-    });
+    function updatePublishStatus(connected) {
+      const badge = document.getElementById('publishStatus');
+      if (connected) {
+        badge.className = 'status-badge connected';
+        badge.textContent = 'Conectado';
+      } else {
+        badge.className = 'status-badge disconnected';
+        badge.textContent = 'Desconectado';
+      }
+    }
+
+    function updatePublishReadyState() {
+      const noHU = document.getElementById('publishNoHU');
+      const ready = document.getElementById('publishReady');
+      if (currentHU) {
+        noHU.style.display = 'none';
+        ready.style.display = 'block';
+      } else {
+        noHU.style.display = 'block';
+        ready.style.display = 'none';
+      }
+    }
+
+    // Init
+    updatePublishReadyState();
   </script>
 </body>
 </html>
