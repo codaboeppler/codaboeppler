@@ -858,10 +858,10 @@
     const FREE_DAILY_LIMIT = 3;
 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // CONFIGURACION: Pon aqui tu checkout URL de Lemonsqueezy
+    // CONFIGURACION: URL de tu backend en Vercel
+    // Cambia esto despues de hacer deploy
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    const CHECKOUT_URL = 'https://YOUR_STORE.lemonsqueezy.com/checkout/buy/YOUR_PRODUCT_ID';
-    const LEMONSQUEEZY_API_KEY = 'YOUR_LEMONSQUEEZY_API_KEY';
+    const API_BASE = 'https://hu-license-api.vercel.app';
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     // Cache de datos de ClickUp
@@ -929,37 +929,44 @@
       updateUsageBar();
     }
 
-    function openCheckout() {
-      window.open(CHECKOUT_URL, '_blank');
+    async function openCheckout() {
+      try {
+        const resp = await fetch(API_BASE + '/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await resp.json();
+        if (data.url) {
+          window.open(data.url, '_blank');
+        } else {
+          showToast('Error al abrir checkout');
+        }
+      } catch (err) {
+        // Fallback: open Stripe payment link directly
+        window.open(API_BASE + '/api/checkout', '_blank');
+      }
     }
 
     async function validateLicenseKey(key) {
-      // Validate against Lemonsqueezy API
-      const resp = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
+      const resp = await fetch(API_BASE + '/api/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          license_key: key,
-          instance_name: 'figma-hu-plugin'
-        })
+        body: JSON.stringify({ license_key: key })
       });
-
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error || 'Licencia no valida');
-      }
 
       const data = await resp.json();
 
       if (!data.valid) {
-        throw new Error(data.error || 'Licencia expirada o no valida');
+        throw new Error(data.error || 'Licencia no valida o expirada');
       }
 
       return {
         valid: true,
-        email: data.meta?.customer_email || '',
-        name: data.meta?.customer_name || '',
-        variant: data.meta?.variant_name || 'PRO'
+        email: data.email || '',
+        plan: data.plan || 'pro',
+        status: data.status,
+        cancel_at_period_end: data.cancel_at_period_end
       };
     }
 

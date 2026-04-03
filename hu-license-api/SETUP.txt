@@ -1,0 +1,165 @@
+================================================================================
+SETUP: HU Generator PRO - Backend de Licencias con Stripe
+================================================================================
+
+Tu Stripe:
+  Product ID: prod_UGVAlNcICBrCkL
+  Price ID:   price_1THy9z08ioB1WxUXCbHNZIEu
+
+
+PASO 1: Crear cuenta en Vercel
+================================================================================
+1. Ve a vercel.com y crea cuenta (gratis)
+2. Conecta tu repo de GitHub
+
+
+PASO 2: Deploy del backend
+================================================================================
+1. En terminal:
+   cd hu-license-api
+   npm install
+   npx vercel
+
+2. Vercel te va a preguntar:
+   - Link to existing project? -> No
+   - Project name? -> hu-license-api
+   - Directory? -> ./
+   Sigue las instrucciones
+
+3. Anota la URL que te da (ej: hu-license-api.vercel.app)
+
+
+PASO 3: Configurar variables de entorno en Vercel
+================================================================================
+En Vercel Dashboard -> tu proyecto -> Settings -> Environment Variables:
+
+   STRIPE_SECRET_KEY     = sk_live_XXXXXXX  (lo sacas de Stripe Dashboard > API keys)
+   STRIPE_WEBHOOK_SECRET = whsec_XXXXXXX    (se genera en paso 4)
+   STRIPE_PRICE_ID       = price_1THy9z08ioB1WxUXCbHNZIEu
+   STRIPE_PRODUCT_ID     = prod_UGVAlNcICBrCkL
+
+IMPORTANTE: Usa las keys de "Live mode", no "Test mode" para produccion
+
+
+PASO 4: Configurar Webhook en Stripe
+================================================================================
+1. Ve a Stripe Dashboard > Developers > Webhooks
+2. Click "Add endpoint"
+3. URL: https://hu-license-api.vercel.app/api/webhook
+4. Eventos a escuchar (selecciona estos):
+   - checkout.session.completed
+   - customer.subscription.deleted
+   - customer.subscription.paused
+   - invoice.payment_failed
+5. Click "Add endpoint"
+6. Copia el "Signing secret" (whsec_XXXX)
+7. Pegalo en Vercel como STRIPE_WEBHOOK_SECRET
+8. Redeploy en Vercel: npx vercel --prod
+
+
+PASO 5: Actualizar URLs en el plugin de Figma
+================================================================================
+1. Abre figma-plugin-hu/ui.html
+2. Busca la linea:
+   const API_BASE = 'https://hu-license-api.vercel.app';
+3. Cambiala por tu URL real de Vercel
+
+4. Abre figma-plugin-hu/manifest.json
+5. Cambia el dominio en allowedDomains por tu URL real
+
+6. Recompila: npx tsc -p tsconfig.json
+
+
+PASO 6: Actualizar success_url en checkout.js
+================================================================================
+1. Abre hu-license-api/api/checkout.js
+2. Cambia las URLs de success_url y cancel_url por tu dominio real
+3. Redeploy: npx vercel --prod
+
+
+PASO 7: Probar el flujo completo
+================================================================================
+1. Usa Stripe en modo Test primero (sk_test_XXX)
+2. En Figma, abre el plugin
+3. Genera 3 HUs (alcanza el limite free)
+4. Click "Upgrade PRO" -> debe abrir Stripe Checkout
+5. Usa tarjeta de prueba: 4242 4242 4242 4242
+6. Despues del pago, copia la license key
+7. En Figma > tab Licencia > pega la key > Activar
+8. Verifica que desbloquea las funciones PRO
+
+
+PASO 8: Publicar el plugin en Figma
+================================================================================
+1. En Figma Desktop > Plugins > Development
+2. Click derecho en tu plugin > "Publish"
+3. Llena el formulario:
+   a. Nombre: HU Generator PRO
+   b. Descripcion: Genera Historias de Usuario desde tus disenos de Figma
+      y publicalas directo a ClickUp. Detecta componentes, interacciones,
+      estados de error y genera documentacion lista para desarrollo.
+   c. Icon: 128x128px
+   d. Cover: 1920x960px
+   e. Al menos 1 screenshot
+4. Submit for review
+
+
+ARQUITECTURA
+================================================================================
+
+Flujo de compra:
+
+   [Plugin Figma]
+        |
+        | POST /api/checkout
+        v
+   [Vercel Backend] -----> [Stripe Checkout]
+                                  |
+                                  | pago exitoso
+                                  v
+                           [Stripe Webhook]
+                                  |
+                                  | POST /api/webhook
+                                  v
+                           [Genera license key]
+                           [Guarda en metadata de Stripe]
+                                  |
+                                  v
+                           [Pagina /success]
+                           [Muestra license key al usuario]
+
+
+Flujo de validacion:
+
+   [Plugin Figma]
+        |
+        | POST /api/validate { license_key }
+        v
+   [Vercel Backend]
+        |
+        | Busca subscription con esa key en metadata
+        v
+   [Stripe API]
+        |
+        | subscription.status === 'active'?
+        v
+   [Responde { valid: true/false }]
+
+
+ENDPOINTS
+================================================================================
+
+POST /api/checkout        -> Crea sesion de Stripe Checkout
+POST /api/webhook         -> Recibe eventos de Stripe
+POST /api/validate        -> Valida license key
+GET  /api/license?sid=X   -> Recupera license key post-compra
+GET  /success?session_id= -> Pagina de exito (muestra la key)
+
+
+COSTOS
+================================================================================
+
+Vercel (hosting):     Gratis (Hobby plan, hasta 100GB bandwidth)
+Stripe (pagos):       2.9% + $0.30 por transaccion
+Tu ganancia por $9:   ~$8.44 neto por suscripcion mensual
+Tu ganancia por $79:  ~$76.41 neto por suscripcion anual
