@@ -3,6 +3,12 @@
 
 figma.showUI(__html__, { width: 520, height: 700 });
 
+interface InputErrorInfo {
+  fieldName: string;
+  errorType: 'name' | 'color' | 'text' | 'variant';
+  detail: string;
+}
+
 interface ComponentInfo {
   name: string;
   type: string;
@@ -15,6 +21,10 @@ interface ComponentInfo {
   isComponent: boolean;
   componentName?: string;
   states: string[];
+  hasErrorState: boolean;
+  errorDetails: InputErrorInfo[];
+  fillColors: string[];
+  strokeColors: string[];
 }
 
 // Detecta si un nodo tiene indicios de interaccion
@@ -58,8 +68,163 @@ function detectStates(node: SceneNode): string[] {
   return states;
 }
 
+// Detecta si un color es rojo/error (tonos rojos, naranjas de alerta)
+function isErrorColor(r: number, g: number, b: number): boolean {
+  // Rojo puro y variantes
+  if (r > 0.7 && g < 0.35 && b < 0.35) return true;
+  // Rojo medio (como #DC2626, #EF4444, #F87171)
+  if (r > 0.6 && g < 0.3 && b < 0.3) return true;
+  // Naranja-rojo de advertencia
+  if (r > 0.8 && g < 0.4 && b < 0.2) return true;
+  return false;
+}
+
+// Extrae colores de fills y strokes de un nodo
+function extractColors(node: SceneNode): { fills: string[]; strokes: string[]; hasRedFill: boolean; hasRedStroke: boolean } {
+  const result = { fills: [] as string[], strokes: [] as string[], hasRedFill: false, hasRedStroke: false };
+
+  if ('fills' in node && Array.isArray(node.fills)) {
+    for (const fill of node.fills as Paint[]) {
+      if (fill.type === 'SOLID' && fill.visible !== false) {
+        const { r, g, b } = fill.color;
+        const hex = `#${Math.round(r * 255).toString(16).padStart(2, '0')}${Math.round(g * 255).toString(16).padStart(2, '0')}${Math.round(b * 255).toString(16).padStart(2, '0')}`;
+        result.fills.push(hex);
+        if (isErrorColor(r, g, b)) result.hasRedFill = true;
+      }
+    }
+  }
+
+  if ('strokes' in node && Array.isArray(node.strokes)) {
+    for (const stroke of node.strokes as Paint[]) {
+      if (stroke.type === 'SOLID' && stroke.visible !== false) {
+        const { r, g, b } = stroke.color;
+        const hex = `#${Math.round(r * 255).toString(16).padStart(2, '0')}${Math.round(g * 255).toString(16).padStart(2, '0')}${Math.round(b * 255).toString(16).padStart(2, '0')}`;
+        result.strokes.push(hex);
+        if (isErrorColor(r, g, b)) result.hasRedStroke = true;
+      }
+    }
+  }
+
+  return result;
+}
+
+// Detecta patrones de error en nombres y textos
+function detectInputErrors(node: SceneNode, parentName: string = ''): InputErrorInfo[] {
+  const errors: InputErrorInfo[] = [];
+  const nameLower = node.name.toLowerCase();
+  const contextName = parentName || node.name;
+
+  // 1. Deteccion por nombre del nodo
+  const errorNamePatterns = [
+    'error', 'invalid', 'warning', 'alert', 'danger',
+    'validation', 'required', 'helper-error', 'error-msg',
+    'error-text', 'error-icon', 'field-error', 'input-error',
+    'form-error', 'hint-error', 'destructive'
+  ];
+  if (errorNamePatterns.some(p => nameLower.includes(p))) {
+    errors.push({
+      fieldName: contextName,
+      errorType: 'name',
+      detail: `Nodo "${node.name}" tiene patron de error en su nombre`
+    });
+  }
+
+  // 2. Deteccion por color rojo en fills/strokes
+  const colors = extractColors(node);
+  if (colors.hasRedFill) {
+    errors.push({
+      fieldName: contextName,
+      errorType: 'color',
+      detail: `Nodo "${node.name}" tiene fill rojo (${colors.fills.filter(c => c).join(', ')}) - posible estado de error`
+    });
+  }
+  if (colors.hasRedStroke) {
+    errors.push({
+      fieldName: contextName,
+      errorType: 'color',
+      detail: `Nodo "${node.name}" tiene borde rojo (${colors.strokes.filter(c => c).join(', ')}) - posible estado de error`
+    });
+  }
+
+  // 3. Deteccion por contenido de texto
+  if (node.type === 'TEXT') {
+    const text = (node as TextNode).characters.toLowerCase();
+    const errorTextPatterns = [
+      'campo requerido', 'campo obligatorio', 'es requerido', 'es obligatorio',
+      'no valido', 'no válido', 'invalido', 'inválido',
+      'ingrese un', 'ingresa un', 'debe contener', 'debe ser',
+      'formato incorrecto', 'formato invalido', 'formato no valido',
+      'monto minimo', 'monto maximo', 'monto mínimo', 'monto máximo',
+      'ya existe', 'no encontrado', 'no disponible',
+      'required', 'invalid', 'must be', 'cannot be', 'is required',
+      'too short', 'too long', 'min length', 'max length',
+      'error', 'please enter', 'por favor ingrese',
+      'caracteres minimo', 'caracteres maximo',
+      'mayor que', 'menor que', 'entre',
+      'fecha invalida', 'fecha no valida',
+      'correo invalido', 'email invalido',
+      'contrasena incorrecta', 'password incorrect',
+      'no coincide', 'does not match',
+      'solo numeros', 'solo letras', 'solo alfanumerico',
+      'limite excedido', 'saldo insuficiente', 'fondos insuficientes'
+    ];
+    if (errorTextPatterns.some(p => text.includes(p))) {
+      errors.push({
+        fieldName: contextName,
+        errorType: 'text',
+        detail: `Texto de error detectado: "${(node as TextNode).characters.trim()}"`
+      });
+    }
+
+    // Texto rojo tambien es indicador de error
+    const textColors = extractColors(node);
+    if (textColors.hasRedFill && (node as TextNode).characters.trim().length > 0) {
+      errors.push({
+        fieldName: contextName,
+        errorType: 'color',
+        detail: `Texto en rojo: "${(node as TextNode).characters.trim()}" - posible mensaje de error`
+      });
+    }
+  }
+
+  // 4. Deteccion por variantes de componente (error=true, state=error, etc.)
+  if (node.type === 'INSTANCE') {
+    const instance = node as InstanceNode;
+    try {
+      const props = instance.componentProperties;
+      if (props) {
+        for (const [key, val] of Object.entries(props)) {
+          const keyLower = key.toLowerCase();
+          const valStr = String(val.value).toLowerCase();
+          if (
+            (keyLower.includes('error') && (valStr === 'true' || valStr === 'yes')) ||
+            (keyLower.includes('state') && valStr === 'error') ||
+            (keyLower.includes('status') && valStr === 'error') ||
+            (keyLower.includes('variant') && valStr === 'error') ||
+            (keyLower.includes('validation') && valStr !== 'none' && valStr !== 'false') ||
+            (keyLower.includes('destructive') && (valStr === 'true' || valStr === 'yes'))
+          ) {
+            errors.push({
+              fieldName: contextName,
+              errorType: 'variant',
+              detail: `Componente "${node.name}" tiene propiedad ${key}=${val.value}`
+            });
+          }
+        }
+      }
+    } catch (_e) {
+      // componentProperties puede no estar disponible
+    }
+  }
+
+  return errors;
+}
+
 // Recorre el arbol de nodos y extrae informacion
 function extractNodeInfo(node: SceneNode, depth: number = 0): ComponentInfo {
+  const colors = extractColors(node);
+  const inputErrors = detectInputErrors(node);
+
   const info: ComponentInfo = {
     name: node.name,
     type: node.type,
@@ -70,7 +235,11 @@ function extractNodeInfo(node: SceneNode, depth: number = 0): ComponentInfo {
     width: Math.round(node.width),
     height: Math.round(node.height),
     isComponent: node.type === 'COMPONENT' || node.type === 'INSTANCE',
-    states: detectStates(node)
+    states: detectStates(node),
+    hasErrorState: inputErrors.length > 0,
+    errorDetails: inputErrors,
+    fillColors: colors.fills,
+    strokeColors: colors.strokes
   };
 
   if (node.type === 'INSTANCE') {
@@ -94,6 +263,11 @@ function extractNodeInfo(node: SceneNode, depth: number = 0): ComponentInfo {
         info.children.push(childInfo);
         // Bubble up texts
         info.texts.push(...childInfo.texts);
+        // Bubble up error state
+        if (childInfo.hasErrorState) {
+          info.hasErrorState = true;
+          info.errorDetails.push(...childInfo.errorDetails);
+        }
       }
     }
   }
@@ -110,6 +284,8 @@ function categorizeComponents(info: ComponentInfo): {
   lists: ComponentInfo[];
   indicators: ComponentInfo[];
   navigation: ComponentInfo[];
+  inputErrors: InputErrorInfo[];
+  inputsWithErrors: ComponentInfo[];
 } {
   const result = {
     inputs: [] as ComponentInfo[],
@@ -118,14 +294,25 @@ function categorizeComponents(info: ComponentInfo): {
     containers: [] as ComponentInfo[],
     lists: [] as ComponentInfo[],
     indicators: [] as ComponentInfo[],
-    navigation: [] as ComponentInfo[]
+    navigation: [] as ComponentInfo[],
+    inputErrors: [] as InputErrorInfo[],
+    inputsWithErrors: [] as ComponentInfo[]
   };
 
-  function walk(node: ComponentInfo) {
+  function walk(node: ComponentInfo, parentIsInput: boolean = false) {
     const nameLower = node.name.toLowerCase();
 
     if (/input|field|text.?field|search|textarea/i.test(nameLower)) {
       result.inputs.push(node);
+      // Buscar errores dentro del input y sus hijos
+      if (node.hasErrorState) {
+        result.inputsWithErrors.push(node);
+        result.inputErrors.push(...node.errorDetails);
+      }
+      // Revisar hijos del input por errores
+      for (const child of node.children) {
+        collectErrors(child, node.name);
+      }
     } else if (/button|btn|cta/i.test(nameLower)) {
       result.buttons.push(node);
     } else if (/card|container|section|panel|group/i.test(nameLower)) {
@@ -138,16 +325,44 @@ function categorizeComponents(info: ComponentInfo): {
       result.navigation.push(node);
     }
 
+    // Recoger errores sueltos (no dentro de inputs)
+    if (node.hasErrorState && !parentIsInput && !/input|field|text.?field/i.test(nameLower)) {
+      result.inputErrors.push(...node.errorDetails);
+    }
+
     if (node.texts.length > 0 && node.type === 'TEXT') {
       result.labels.push(...node.texts);
     }
 
+    const isInput = /input|field|text.?field|search|textarea/i.test(nameLower);
     for (const child of node.children) {
-      walk(child);
+      walk(child, isInput || parentIsInput);
+    }
+  }
+
+  function collectErrors(node: ComponentInfo, parentFieldName: string) {
+    if (node.hasErrorState) {
+      // Re-tag errors with parent field name
+      for (const err of node.errorDetails) {
+        result.inputErrors.push({ ...err, fieldName: parentFieldName });
+      }
+    }
+    for (const child of node.children) {
+      collectErrors(child, parentFieldName);
     }
   }
 
   walk(info);
+
+  // Deduplicar errores
+  const seen = new Set<string>();
+  result.inputErrors = result.inputErrors.filter(e => {
+    const key = `${e.fieldName}|${e.errorType}|${e.detail}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
   return result;
 }
 
@@ -251,6 +466,14 @@ function generateHU(
       hu += `      ${toRoman(idx + 1)}. Campo "${inp.name}"\n`;
       hu += `         1. Tipo: [texto / numerico / fecha / selector]\n`;
       hu += `         2. Validacion: [DEFINIR]\n`;
+      // Verificar si este input tiene errores detectados
+      const fieldErrors = categories.inputErrors.filter(e => e.fieldName === inp.name);
+      if (fieldErrors.length > 0) {
+        hu += `         3. Estado de error detectado:\n`;
+        fieldErrors.forEach((fe, feIdx) => {
+          hu += `            ${String.fromCharCode(97 + feIdx)}. ${fe.detail}\n`;
+        });
+      }
     });
   }
 
@@ -275,12 +498,68 @@ function generateHU(
   hu += `      iii. Estado de error: [DEFINIR]\n`;
   hu += `      iv. Estado de carga: [DEFINIR]\n`;
 
-  // Seccion 5: Validaciones
-  hu += `\n5. Validaciones\n`;
+  // Seccion 5: Errores de input detectados
+  hu += `\n5. Errores de input\n`;
+  if (categories.inputErrors.length > 0) {
+    hu += `   a. Errores detectados automaticamente\n`;
+
+    // Agrupar por tipo de deteccion
+    const byName = categories.inputErrors.filter(e => e.errorType === 'name');
+    const byColor = categories.inputErrors.filter(e => e.errorType === 'color');
+    const byText = categories.inputErrors.filter(e => e.errorType === 'text');
+    const byVariant = categories.inputErrors.filter(e => e.errorType === 'variant');
+
+    if (byColor.length > 0) {
+      hu += `      i. Deteccion por color (bordes/fills rojos)\n`;
+      byColor.forEach((e, idx) => {
+        hu += `         ${idx + 1}. ${e.detail}\n`;
+      });
+    }
+    if (byText.length > 0) {
+      hu += `      ${byColor.length > 0 ? 'ii' : 'i'}. Mensajes de error en texto\n`;
+      byText.forEach((e, idx) => {
+        hu += `         ${idx + 1}. ${e.detail}\n`;
+      });
+    }
+    if (byName.length > 0) {
+      const rom = byColor.length > 0 && byText.length > 0 ? 'iii' : (byColor.length > 0 || byText.length > 0 ? 'ii' : 'i');
+      hu += `      ${rom}. Nodos con patron de error en nombre\n`;
+      byName.forEach((e, idx) => {
+        hu += `         ${idx + 1}. ${e.detail}\n`;
+      });
+    }
+    if (byVariant.length > 0) {
+      hu += `      iv. Variantes de componente con estado error\n`;
+      byVariant.forEach((e, idx) => {
+        hu += `         ${idx + 1}. ${e.detail}\n`;
+      });
+    }
+
+    hu += `   b. Comportamiento esperado de errores\n`;
+    hu += `      i. Cuando se muestra: [al perder foco / al enviar formulario / en tiempo real]\n`;
+    hu += `      ii. Donde se muestra: [debajo del campo / tooltip / inline]\n`;
+    hu += `      iii. Como se limpia: [al corregir el valor / al hacer foco / manual]\n`;
+    hu += `      iv. Estilo visual: borde rojo + mensaje de error debajo del campo\n`;
+  } else {
+    hu += `   a. No se detectaron errores de input en el diseno\n`;
+    hu += `   b. Definir manualmente\n`;
+    hu += `      i. [DEFINIR que campos requieren validacion]\n`;
+    hu += `      ii. [DEFINIR mensajes de error para cada campo]\n`;
+    hu += `      iii. [DEFINIR cuando se disparan las validaciones]\n`;
+  }
+
+  // Seccion 6: Validaciones
+  hu += `\n6. Validaciones\n`;
   hu += `   a. Campos\n`;
   if (categories.inputs.length > 0) {
     categories.inputs.forEach((inp, idx) => {
-      hu += `      ${toRoman(idx + 1)}. "${inp.name}": [DEFINIR regla de validacion]\n`;
+      const hasErrors = categories.inputErrors.some(e => e.fieldName === inp.name);
+      hu += `      ${toRoman(idx + 1)}. "${inp.name}": `;
+      if (hasErrors) {
+        hu += `[ERROR DETECTADO - ver seccion 5]\n`;
+      } else {
+        hu += `[DEFINIR regla de validacion]\n`;
+      }
     });
   } else {
     hu += `      i. [DEFINIR validaciones de campos si aplica]\n`;
@@ -289,9 +568,9 @@ function generateHU(
   hu += `      i. [DEFINIR que roles pueden ver esta pantalla]\n`;
   hu += `      ii. [DEFINIR que roles pueden interactuar]\n`;
 
-  // Seccion 6: Logica de negocio (si aplica)
+  // Seccion 7: Logica de negocio (si aplica)
   if (huType === 'financial' || huType === 'process') {
-    hu += `\n6. Logica de negocio\n`;
+    hu += `\n7. Logica de negocio\n`;
     hu += `   a. Calculos\n`;
     hu += `      i. [DEFINIR formulas o calculos que apliquen]\n`;
     hu += `         1. [Desglose del calculo]\n`;
@@ -299,9 +578,9 @@ function generateHU(
     hu += `      i. [DEFINIR reglas de negocio especificas]\n`;
   }
 
-  // Seccion 7: Post-accion
+  // Seccion 8: Post-accion
   if (huType === 'process' || huType === 'financial') {
-    hu += `\n${huType === 'financial' ? '7' : '6'}. Post-accion\n`;
+    hu += `\n8. Post-accion\n`;
     hu += `   a. Notificaciones\n`;
     hu += `      i. [DEFINIR si se genera notificacion al completar]\n`;
     hu += `   b. Registro\n`;
@@ -318,6 +597,8 @@ function generateHU(
   hu += `Textos unicos: ${uniqueTexts.length}\n`;
   hu += `Botones: ${categories.buttons.length}\n`;
   hu += `Campos de entrada: ${categories.inputs.length}\n`;
+  hu += `Errores de input detectados: ${categories.inputErrors.length}\n`;
+  hu += `Campos con error: ${categories.inputsWithErrors.length}\n`;
   hu += `Indicadores: ${categories.indicators.length}\n`;
   hu += `Estados detectados: ${uniqueStates.length}\n`;
 
