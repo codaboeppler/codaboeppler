@@ -8,6 +8,9 @@
   "enableProposedApi": false,
   "editorType": ["figma"],
   "networkAccess": {
-    "allowedDomains": ["https://api.clickup.com"]
+    "allowedDomains": [
+      "https://api.clickup.com",
+      "https://api.lemonsqueezy.com"
+    ]
   }
 }

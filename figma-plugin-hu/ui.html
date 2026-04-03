@@ -352,6 +352,172 @@
       margin-top: 8px;
       word-break: break-all;
     }
+
+    /* ===== PAYWALL / UPGRADE ===== */
+    .paywall-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(26, 26, 46, 0.92);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .paywall-overlay.visible { display: flex; }
+
+    .paywall-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .paywall-card h2 {
+      font-size: 18px;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    .paywall-card .subtitle {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .plan-comparison {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .plan-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 11px;
+    }
+
+    .plan-row .feature { color: #333; flex: 1; }
+    .plan-row .free-val { color: #999; width: 60px; text-align: center; }
+    .plan-row .pro-val { color: #7c3aed; font-weight: 600; width: 60px; text-align: center; }
+
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+    }
+    .plan-header .pro-val { color: #7c3aed; }
+
+    .price-tag {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin: 12px 0 4px;
+    }
+
+    .price-tag span { font-size: 14px; font-weight: 400; color: #999; }
+
+    .btn-upgrade {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 12px;
+      transition: all 0.2s;
+    }
+    .btn-upgrade:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    }
+
+    .paywall-dismiss {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 11px;
+      cursor: pointer;
+      margin-top: 12px;
+      padding: 4px;
+    }
+    .paywall-dismiss:hover { color: #666; }
+
+    .usage-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #fefce8;
+      border: 1px solid #fde68a;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: #92400e;
+    }
+
+    .usage-bar.exhausted {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+
+    .usage-bar .upgrade-link {
+      color: #7c3aed;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .pro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: white;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      vertical-align: middle;
+    }
+
+    .license-card {
+      background: linear-gradient(135deg, #f3f0ff 0%, #ede9fe 100%);
+      border: 1px solid #ddd6fe;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .license-card.active {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-color: #bbf7d0;
+    }
+
+    .license-card h3 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .license-card p {
+      font-size: 11px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -362,13 +528,20 @@
 
   <!-- TABS -->
   <div class="tab-bar">
-    <div class="tab active" data-tab="generate">Generar HU</div>
-    <div class="tab" data-tab="publish">Publicar a ClickUp</div>
-    <div class="tab" data-tab="config">Configuracion</div>
+    <div class="tab active" data-tab="generate">Generar</div>
+    <div class="tab" data-tab="publish">Publicar <span class="pro-badge">PRO</span></div>
+    <div class="tab" data-tab="config">ClickUp</div>
+    <div class="tab" data-tab="license">Licencia</div>
   </div>
 
   <!-- ==================== TAB 1: GENERAR ==================== -->
   <div class="tab-content active" id="tab-generate">
+    <!-- Usage bar (free tier) -->
+    <div class="usage-bar" id="usageBar" style="display:none;">
+      <span id="usageText">0/3 HUs generadas hoy</span>
+      <span class="upgrade-link" id="usageUpgrade">Upgrade PRO</span>
+    </div>
+
     <div class="selection-bar" id="selectionBar">
       <div class="selection-dot" id="selectionDot"></div>
       <span class="selection-text" id="selectionText">Sin seleccion - selecciona un frame</span>
@@ -561,6 +734,115 @@
     </div>
   </div>
 
+  <!-- ==================== TAB 4: LICENCIA ==================== -->
+  <div class="tab-content" id="tab-license">
+
+    <div id="licenseFreePlan" class="license-card">
+      <h3>Plan Gratis</h3>
+      <p>3 HUs por dia | Sin ClickUp | Sin deteccion de errores</p>
+    </div>
+
+    <div id="licenseProPlan" class="license-card active" style="display:none;">
+      <h3>Plan PRO Activo</h3>
+      <p id="licenseProEmail"></p>
+    </div>
+
+    <div class="config-card">
+      <h4>Activar licencia PRO</h4>
+      <div class="form-group">
+        <label>License Key</label>
+        <input type="text" id="licenseKeyInput" placeholder="XXXX-XXXX-XXXX-XXXX">
+        <div class="hint">Recibida por email al comprar</div>
+      </div>
+      <button class="btn btn-clickup" id="activateLicenseBtn">
+        Activar licencia
+      </button>
+
+      <div class="error-msg" id="licenseError"></div>
+      <div class="success-msg" id="licenseSuccess"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="config-card" style="text-align:center;">
+      <h4>No tienes licencia?</h4>
+      <p style="font-size:11px; color:#666; margin-bottom:12px;">
+        Desbloquea HUs ilimitadas, publicacion a ClickUp, deteccion de errores y screenshot adjunto.
+      </p>
+      <button class="btn btn-upgrade" id="buyLicenseBtn">
+        Comprar PRO - $9 USD/mes
+      </button>
+      <p style="font-size:10px; color:#999; margin-top:8px;">
+        O $79 USD/ano (ahorra 27%)
+      </p>
+    </div>
+
+    <div class="config-card" id="deactivateSection" style="display:none;">
+      <h4>Gestionar licencia</h4>
+      <div class="actions-row">
+        <button class="btn btn-secondary" id="refreshLicenseBtn">Verificar estado</button>
+        <button class="btn btn-danger" id="deactivateLicenseBtn">Desactivar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAYWALL OVERLAY ==================== -->
+  <div class="paywall-overlay" id="paywallOverlay">
+    <div class="paywall-card">
+      <h2>Desbloquea HU Generator PRO</h2>
+      <p class="subtitle" id="paywallReason">Has alcanzado el limite diario del plan gratuito</p>
+
+      <div class="plan-comparison">
+        <div class="plan-header">
+          <span class="feature"></span>
+          <span class="free-val">GRATIS</span>
+          <span class="pro-val">PRO</span>
+        </div>
+        <div class="plan-row">
+          <span class="feature">HUs por dia</span>
+          <span class="free-val">3</span>
+          <span class="pro-val">Sin limite</span>
+        </div>
+        <div class="plan-row">
+          <span class="feature">Copiar al portapapeles</span>
+          <span class="free-val">Si</span>
+          <span class="pro-val">Si</span>
+        </div>
+        <div class="plan-row">
+          <span class="feature">Deteccion de errores</span>
+          <span class="free-val">--</span>
+          <span class="pro-val">Si</span>
+        </div>
+        <div class="plan-row">
+          <span class="feature">Publicar a ClickUp</span>
+          <span class="free-val">--</span>
+          <span class="pro-val">Si</span>
+        </div>
+        <div class="plan-row">
+          <span class="feature">Screenshot adjunto</span>
+          <span class="free-val">--</span>
+          <span class="pro-val">Si</span>
+        </div>
+        <div class="plan-row">
+          <span class="feature">Tipos financiero/proceso</span>
+          <span class="free-val">--</span>
+          <span class="pro-val">Si</span>
+        </div>
+      </div>
+
+      <div class="price-tag">$9 <span>USD / mes</span></div>
+      <p style="font-size:10px; color:#999;">O $79 USD/ano (ahorra 27%)</p>
+
+      <button class="btn-upgrade" id="paywallBuyBtn">
+        Comprar PRO ahora
+      </button>
+      <br>
+      <button class="paywall-dismiss" id="paywallDismiss">
+        Continuar con plan gratuito
+      </button>
+    </div>
+  </div>
+
   <div class="success-toast" id="toast">Copiado al portapapeles</div>
 
   <script>
@@ -571,6 +853,16 @@
     let screenshotFileName = '';
     let clickupToken = '';
     let clickupUser = null;
+    let isPro = false;
+    let dailyUsage = 0;
+    const FREE_DAILY_LIMIT = 3;
+
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // CONFIGURACION: Pon aqui tu checkout URL de Lemonsqueezy
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const CHECKOUT_URL = 'https://YOUR_STORE.lemonsqueezy.com/checkout/buy/YOUR_PRODUCT_ID';
+    const LEMONSQUEEZY_API_KEY = 'YOUR_LEMONSQUEEZY_API_KEY';
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     // Cache de datos de ClickUp
     let workspaces = [];
@@ -588,9 +880,94 @@
       });
     });
 
+    // ===================== FREEMIUM LOGIC =====================
+    function checkCanGenerate() {
+      if (isPro) return true;
+      return dailyUsage < FREE_DAILY_LIMIT;
+    }
+
+    function showPaywall(reason) {
+      document.getElementById('paywallReason').textContent = reason || 'Desbloquea todas las funciones PRO';
+      document.getElementById('paywallOverlay').className = 'paywall-overlay visible';
+    }
+
+    function hidePaywall() {
+      document.getElementById('paywallOverlay').className = 'paywall-overlay';
+    }
+
+    function updateUsageBar() {
+      const bar = document.getElementById('usageBar');
+      const text = document.getElementById('usageText');
+      if (isPro) {
+        bar.style.display = 'none';
+        return;
+      }
+      bar.style.display = 'flex';
+      text.textContent = dailyUsage + '/' + FREE_DAILY_LIMIT + ' HUs generadas hoy (plan gratis)';
+      if (dailyUsage >= FREE_DAILY_LIMIT) {
+        bar.className = 'usage-bar exhausted';
+        text.textContent = 'Limite diario alcanzado (' + FREE_DAILY_LIMIT + '/' + FREE_DAILY_LIMIT + ')';
+      } else {
+        bar.className = 'usage-bar';
+      }
+    }
+
+    function updateLicenseUI() {
+      const freePlan = document.getElementById('licenseFreePlan');
+      const proPlan = document.getElementById('licenseProPlan');
+      const deactivate = document.getElementById('deactivateSection');
+
+      if (isPro) {
+        freePlan.style.display = 'none';
+        proPlan.style.display = 'block';
+        deactivate.style.display = 'block';
+      } else {
+        freePlan.style.display = 'block';
+        proPlan.style.display = 'none';
+        deactivate.style.display = 'none';
+      }
+      updateUsageBar();
+    }
+
+    function openCheckout() {
+      window.open(CHECKOUT_URL, '_blank');
+    }
+
+    async function validateLicenseKey(key) {
+      // Validate against Lemonsqueezy API
+      const resp = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          license_key: key,
+          instance_name: 'figma-hu-plugin'
+        })
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || 'Licencia no valida');
+      }
+
+      const data = await resp.json();
+
+      if (!data.valid) {
+        throw new Error(data.error || 'Licencia expirada o no valida');
+      }
+
+      return {
+        valid: true,
+        email: data.meta?.customer_email || '',
+        name: data.meta?.customer_name || '',
+        variant: data.meta?.variant_name || 'PRO'
+      };
+    }
+
     // ===================== INIT =====================
     parent.postMessage({ pluginMessage: { type: 'check-selection' } }, '*');
     parent.postMessage({ pluginMessage: { type: 'load-clickup-config' } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'load-license' } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'get-usage' } }, '*');
 
     // ===================== CLICKUP API =====================
     async function clickupFetch(endpoint, options = {}) {
@@ -857,14 +1234,32 @@
       showToast('Configuracion borrada');
     });
 
-    // ===================== GENERATE HU =====================
+    // ===================== GENERATE HU (with freemium gate) =====================
     document.getElementById('generateBtn').addEventListener('click', () => {
+      // Check free tier limit
+      if (!isPro && dailyUsage >= FREE_DAILY_LIMIT) {
+        showPaywall('Has alcanzado el limite de ' + FREE_DAILY_LIMIT + ' HUs diarias del plan gratuito');
+        return;
+      }
+
+      // Check pro-only HU types
+      const huType = document.getElementById('huType').value;
+      if (!isPro && (huType === 'financial' || huType === 'process')) {
+        showPaywall('Los tipos "Financiero" y "Flujo/Proceso" son exclusivos del plan PRO');
+        return;
+      }
+
+      // Track usage (free tier)
+      if (!isPro) {
+        parent.postMessage({ pluginMessage: { type: 'track-usage' } }, '*');
+      }
+
       parent.postMessage({
         pluginMessage: {
           type: 'generate',
           screenName: document.getElementById('screenName').value,
           huNumber: document.getElementById('huNumber').value || 'XXX',
-          huType: document.getElementById('huType').value,
+          huType: huType,
           context: document.getElementById('context').value
         }
       }, '*');
@@ -872,6 +1267,10 @@
 
     // ===================== GO TO PUBLISH TAB =====================
     document.getElementById('goPublishBtn').addEventListener('click', () => {
+      if (!isPro) {
+        showPaywall('Publicar a ClickUp es una funcion exclusiva del plan PRO');
+        return;
+      }
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.querySelectorAll('.tab')[1].classList.add('active');
@@ -1021,6 +1420,27 @@
         // silently handled
       }
 
+      // License loaded from storage
+      if (msg.type === 'license-loaded') {
+        if (msg.status === 'pro' && msg.licenseKey) {
+          isPro = true;
+          document.getElementById('licenseKeyInput').value = msg.licenseKey;
+          document.getElementById('licenseProEmail').textContent = msg.email || 'Licencia activa';
+          // Re-validate in background
+          validateLicenseKey(msg.licenseKey).catch(() => {
+            isPro = false;
+            updateLicenseUI();
+          });
+        }
+        updateLicenseUI();
+      }
+
+      // Usage tracking
+      if (msg.type === 'usage-tracked' || msg.type === 'usage-status') {
+        dailyUsage = msg.count;
+        updateUsageBar();
+      }
+
       if (msg.type === 'screenshot-ready') {
         screenshotBytes = msg.bytes;
         screenshotFileName = msg.fileName;
@@ -1041,6 +1461,82 @@
         window._pendingTaskId = null;
       }
     };
+
+    // ===================== LICENSE EVENTS =====================
+    document.getElementById('activateLicenseBtn').addEventListener('click', async () => {
+      const key = document.getElementById('licenseKeyInput').value.trim();
+      if (!key) {
+        showError('licenseError', 'Ingresa tu license key');
+        return;
+      }
+
+      const btn = document.getElementById('activateLicenseBtn');
+      btn.innerHTML = '<span class="loader"></span> Validando...';
+      btn.disabled = true;
+
+      try {
+        const result = await validateLicenseKey(key);
+        isPro = true;
+        hideError('licenseError');
+        showSuccess('licenseSuccess', 'Licencia activada! Bienvenido PRO.');
+        document.getElementById('licenseProEmail').textContent = result.email || 'Licencia activa';
+
+        // Save license
+        parent.postMessage({
+          pluginMessage: {
+            type: 'save-license',
+            licenseKey: key,
+            status: 'pro',
+            email: result.email
+          }
+        }, '*');
+
+        updateLicenseUI();
+      } catch (err) {
+        showError('licenseError', err.message);
+      }
+
+      btn.innerHTML = 'Activar licencia';
+      btn.disabled = false;
+    });
+
+    document.getElementById('deactivateLicenseBtn').addEventListener('click', () => {
+      isPro = false;
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-license',
+          licenseKey: '',
+          status: 'free',
+          email: ''
+        }
+      }, '*');
+      updateLicenseUI();
+      showToast('Licencia desactivada');
+    });
+
+    document.getElementById('refreshLicenseBtn').addEventListener('click', async () => {
+      const key = document.getElementById('licenseKeyInput').value.trim();
+      if (!key) return;
+      try {
+        await validateLicenseKey(key);
+        showToast('Licencia verificada - activa');
+      } catch (err) {
+        isPro = false;
+        updateLicenseUI();
+        showError('licenseError', 'Licencia ya no es valida: ' + err.message);
+      }
+    });
+
+    // Buy buttons -> open checkout
+    document.getElementById('buyLicenseBtn').addEventListener('click', openCheckout);
+    document.getElementById('paywallBuyBtn').addEventListener('click', () => {
+      openCheckout();
+      hidePaywall();
+    });
+    document.getElementById('paywallDismiss').addEventListener('click', hidePaywall);
+    document.getElementById('usageUpgrade').addEventListener('click', () => {
+      showPaywall('Desbloquea HUs ilimitadas con el plan PRO');
+    });
 
     // ===================== HELPERS =====================
     function showError(id, msg) {
@@ -1095,6 +1591,7 @@
 
     // Init
     updatePublishReadyState();
+    updateLicenseUI();
   </script>
 </body>
 </html>

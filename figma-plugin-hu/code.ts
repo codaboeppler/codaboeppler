@@ -707,6 +707,68 @@ figma.ui.onmessage = async (msg) => {
     });
   }
 
+  // ====== LICENCIA / FREEMIUM ======
+
+  // Guardar license key
+  if (msg.type === 'save-license') {
+    await figma.clientStorage.setAsync('license_key', msg.licenseKey || '');
+    await figma.clientStorage.setAsync('license_status', msg.status || 'free');
+    await figma.clientStorage.setAsync('license_email', msg.email || '');
+    figma.ui.postMessage({ type: 'license-saved' });
+  }
+
+  // Cargar license key
+  if (msg.type === 'load-license') {
+    const licenseKey = await figma.clientStorage.getAsync('license_key') || '';
+    const status = await figma.clientStorage.getAsync('license_status') || 'free';
+    const email = await figma.clientStorage.getAsync('license_email') || '';
+    figma.ui.postMessage({
+      type: 'license-loaded',
+      licenseKey,
+      status,
+      email
+    });
+  }
+
+  // Incrementar y leer contador de uso diario (free tier)
+  if (msg.type === 'track-usage') {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const lastDate = await figma.clientStorage.getAsync('usage_date') || '';
+    let count = await figma.clientStorage.getAsync('usage_count') || 0;
+
+    if (lastDate !== today) {
+      // Nuevo dia, resetear contador
+      count = 0;
+      await figma.clientStorage.setAsync('usage_date', today);
+    }
+
+    count++;
+    await figma.clientStorage.setAsync('usage_count', count);
+
+    figma.ui.postMessage({
+      type: 'usage-tracked',
+      count: count,
+      date: today
+    });
+  }
+
+  // Leer uso actual sin incrementar
+  if (msg.type === 'get-usage') {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastDate = await figma.clientStorage.getAsync('usage_date') || '';
+    let count = await figma.clientStorage.getAsync('usage_count') || 0;
+
+    if (lastDate !== today) {
+      count = 0;
+    }
+
+    figma.ui.postMessage({
+      type: 'usage-status',
+      count: count,
+      date: today
+    });
+  }
+
   if (msg.type === 'check-selection') {
     const selection = figma.currentPage.selection;
     figma.ui.postMessage({
