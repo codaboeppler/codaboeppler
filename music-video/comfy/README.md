@@ -30,23 +30,33 @@ Useful flags: `--width/--height` (e.g. `1080 1920` for vertical), `--fps`,
 
 ```
 VHS_LoadVideoPath (clip 1) ─┐
-                            ImageBatch ─→ VHS_VideoCombine ─→ .mp4
-VHS_LoadVideoPath (clip 2) ─┘                  ↑
-VHS_LoadAudio (song) ──────────────────────────┘
+                            ImageBatch ─→ VHS_DuplicateImages ─→ VHS_SplitImages ─┐
+VHS_LoadVideoPath (clip 2) ─┘              (repeat past song)     (cut to exact)  │
+                                                                                  ↓
+VHS_LoadAudio (song) ───────────────────────────────────────────→ VHS_VideoCombine ─→ .mp4
 ```
 
 Both loaders force the same `custom_width`/`custom_height`, which is what lets
-clips of different resolutions batch together. `VHS_VideoCombine` repeats the
-batch with `loop_count` and bounces it with `pingpong` to cover the song; the
-script computes `loop_count` from the measured durations.
+clips of different resolutions batch together.
 
-## Known limitation
+`VHS_DuplicateImages` repeats the clip sequence past the song's length, then
+`VHS_SplitImages` cuts it to an exact frame count — `round(song_seconds × fps)`.
+That matters: `VHS_VideoCombine` always muxes with `-shortest` and pads audio
+with `apad` rather than trimming it, so a video even slightly longer than the
+song ends on silence, and a shorter one cuts the song off. Landing on the exact
+frame count avoids both.
 
-Length granularity is coarse. One ping-pong cycle of two 5-second clips is
-~20 seconds, and `loop_count` only adds whole cycles, so the video rarely lands
-exactly on the song's length. VHS pads audio with silence rather than trimming,
-so an over-long video gets a silent tail. The script prints the mismatch when it
-happens.
+The core `ImageFromBatch` node would do the same cut, but it caps `length` at
+4096 frames — about 2¼ minutes at 30fps. The VHS nodes use `BIGMAX`, so they
+handle full-length songs.
 
-If you want the cut to land on the beat and end exactly with the song, the
-ffmpeg script one directory up does that directly.
+Clips play in order and repeat (A, B, A, B, …). Every transition is a cut
+between two different clips, which reads as a deliberate edit.
+
+`--pingpong` bounces the whole sequence back in reverse instead; the script
+halves the frame count to compensate, since VHS turns N frames into 2N−2.
+
+## Limitation
+
+Cuts fall where each clip ends, not on the beat. For beat-synced cutting, use
+the ffmpeg script one directory up.

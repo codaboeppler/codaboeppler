@@ -36,7 +36,7 @@ def probe(path, entries, stream=False):
     return vals
 
 
-def build(song, clips, fps, width, height, loop_count, prefix, fmt, pingpong):
+def build(song, clips, fps, width, height, repeat, split_at, prefix, fmt, pingpong):
     wf, img_ids = {}, []
     for i, clip in enumerate(clips):
         nid = str(10 + i)
@@ -65,6 +65,18 @@ def build(song, clips, fps, width, height, loop_count, prefix, fmt, pingpong):
         }
         current = bid
 
+    # Repeat the clip sequence past the song, then cut it to an exact frame
+    # count. Both VHS nodes use BIGMAX limits, unlike core ImageFromBatch
+    # which stops at 4096 frames (~2 minutes at 30fps).
+    wf["60"] = {
+        "class_type": "VHS_DuplicateImages",
+        "inputs": {"images": [current, 0], "multiply_by": repeat},
+    }
+    wf["70"] = {
+        "class_type": "VHS_SplitImages",
+        "inputs": {"images": ["60", 0], "split_index": split_at},
+    }
+
     wf["20"] = {
         "class_type": "VHS_LoadAudio",
         "inputs": {"audio_file": str(song), "seek_seconds": 0.0, "duration": 0.0},
@@ -72,9 +84,9 @@ def build(song, clips, fps, width, height, loop_count, prefix, fmt, pingpong):
     wf["90"] = {
         "class_type": "VHS_VideoCombine",
         "inputs": {
-            "images": [current, 0],
+            "images": ["70", 0],          # IMAGE_A = the first split_index frames
             "frame_rate": fps,
-            "loop_count": loop_count,
+            "loop_count": 0,
             "filename_prefix": prefix,
             "format": fmt,
             "pingpong": pingpong,
@@ -141,7 +153,8 @@ def main():
     ap.add_argument("--height", type=int, default=0)
     ap.add_argument("--prefix", default="music-video")
     ap.add_argument("--format", default="video/h264-mp4")
-    ap.add_argument("--no-pingpong", action="store_true")
+    ap.add_argument("--pingpong", action="store_true",
+                    help="bounce the whole sequence back in reverse")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--out", default="workflow_api.json")
     a = ap.parse_args()
@@ -161,31 +174,25 @@ def main():
         w, h = int(dims[0]), int(dims[1])
     w, h = (w // 2) * 2, (h // 2) * 2
 
-    pingpong = not a.no_pingpong
-    cycle = sum(clip_durs) * (2 if pingpong else 1)
-    if cycle <= 0:
-        sys.exit("error: clips have no duration")
-    # loop_count is EXTRA repeats on top of the first pass; VHS caps it at 100
-    loops = max(0, min(100, -(-int(song_dur * 1000) // int(cycle * 1000)) - 1))
+    # Exact frame arithmetic: the output must land on the song's length so the
+    # muxer neither pads the audio with silence nor cuts the song short.
+    pingpong = a.pingpong
+    target = max(1, round(song_dur * a.fps))
+    # to_pingpong() turns N frames into 2N-2, so feed it half when enabled
+    split_at = ((target + 2 + 1) // 2) if pingpong else target
+    base_frames = sum(max(1, round(d * a.fps)) for d in clip_durs)
+    # +1 repeat of margin: force_rate can yield a frame or two fewer than
+    # duration x fps, and a short batch would truncate the video
+    repeat = max(1, -(-split_at // base_frames) + 1)
 
-    print(f"  song   {song_dur:.1f}s")
-    print(f"  clips  {len(clips)} totalling {sum(clip_durs):.1f}s -> {w}x{h} @ {a.fps}fps")
-    print(f"  cycle  {cycle:.1f}s{' (ping-pong)' if pingpong else ''} x {loops + 1} passes")
+    out_frames = (2 * split_at - 2) if pingpong else split_at
+    print(f"  song   {song_dur:.1f}s -> {target} frames @ {a.fps}fps")
+    print(f"  clips  {len(clips)} totalling {sum(clip_durs):.1f}s ({base_frames} frames) -> {w}x{h}")
+    print(f"  build  repeat x{repeat}, cut to {split_at} frames"
+          + (f", ping-pong -> {out_frames}" if pingpong else ""))
+    print(f"  video  {out_frames / a.fps:.2f}s vs song {song_dur:.2f}s")
 
-    covered = cycle * (loops + 1)
-    if covered < song_dur - 0.5:
-        print(
-            f"  note:  {covered:.1f}s of video for a {song_dur:.1f}s song — VHS caps\n"
-            "         loop_count at 100, so the song will be cut short."
-        )
-    elif covered > song_dur + 0.5:
-        print(
-            f"  note:  {covered:.1f}s of video vs a {song_dur:.1f}s song. VHS pads the\n"
-            "         audio with silence rather than trimming, so expect a silent tail;\n"
-            "         trim it afterwards, or pick a format preset that trims to audio."
-        )
-
-    wf = build(song, clips, a.fps, w, h, loops, a.prefix, a.format, pingpong)
+    wf = build(song, clips, a.fps, w, h, repeat, split_at, a.prefix, a.format, pingpong)
     Path(a.out).write_text(json.dumps(wf, indent=2))
     print(f"  wrote  {a.out}")
 
