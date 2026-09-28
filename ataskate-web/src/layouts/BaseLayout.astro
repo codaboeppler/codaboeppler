@@ -1,0 +1,265 @@
+---
+import Header from '../components/Header.astro';
+import Clarity from '../components/Clarity.astro';
+import Footer from '../components/Footer.astro';
+import { siteConfig, faqs } from '../data/site';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+const {
+  title = siteConfig.defaultTitle,
+  description = siteConfig.description,
+  ogImage = siteConfig.ogImage,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).toString();
+const absOgImage = new URL(ogImage, siteConfig.url).toString();
+
+const orgId = `${siteConfig.url}#organization`;
+const appId = `${siteConfig.url}#software`;
+const faqId = `${siteConfig.url}#faq`;
+
+const jsonLdGraph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': orgId,
+      name: siteConfig.name,
+      legalName: siteConfig.legalName,
+      url: siteConfig.url,
+      logo: new URL('/brand/ataskate-mark.svg', siteConfig.url).toString(),
+      image: absOgImage,
+      slogan: siteConfig.tagline,
+      email: `mailto:${siteConfig.contact.email}`,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: siteConfig.location.city,
+        addressRegion: siteConfig.location.region,
+        addressCountry: siteConfig.location.countryCode,
+      },
+      areaServed: { '@type': 'Country', name: siteConfig.location.country },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      '@id': appId,
+      name: siteConfig.name,
+      applicationCategory: 'BusinessApplication',
+      applicationSubCategory: 'Point of Sale (POS) para casas de empeño',
+      operatingSystem: 'Web',
+      url: siteConfig.url,
+      description: siteConfig.description,
+      inLanguage: siteConfig.language,
+      publisher: { '@id': orgId },
+      featureList: [
+        'Avalúo asistido',
+        'Empeño y generación de boleta',
+        'Refrendo, abono y desempeño',
+        'Inventario y almoneda',
+        'Corte de caja por turno',
+        'Reportes y dashboard multisucursal',
+      ],
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'MXN',
+        price: '0',
+        description: 'Solicita una demostración para conocer planes.',
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': faqId,
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+};
+---
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={siteConfig.keywords.join(', ')} />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="application-name" content={siteConfig.name} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/brand/ataskate-mark.svg" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <meta property="og:site_name" content={siteConfig.name} />
+    <meta property="og:locale" content={siteConfig.locale} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={absOgImage} />
+    <meta property="og:image:alt" content={siteConfig.ogImageAlt} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={absOgImage} />
+
+    <meta name="geo.region" content={`${siteConfig.location.countryCode}-${siteConfig.location.region}`} />
+    <meta name="geo.placename" content={siteConfig.location.city} />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLdGraph).replace(/</g, '\\u003c')}
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem('ats-theme');
+          const dark = stored ? stored === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+    <Clarity />
+  </head>
+  <body id="top">
+    <a href="#main" class="skip-link">Saltar al contenido</a>
+    <Header />
+    <main id="main"><slot /></main>
+    <Footer />
+    <script>
+      // ---------- Theme toggle ----------
+      const themeBtn = document.querySelector('[data-theme-toggle]');
+      themeBtn?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('ats-theme', next); } catch (e) {}
+      });
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // ---------- Scroll-aware header (transparent over hero → solid) ----------
+      const header = document.querySelector('[data-header]');
+      const heroBlock = document.querySelector('[data-hero]');
+      const headerSync = () => {
+        if (!header) return;
+        const threshold = heroBlock ? heroBlock.offsetHeight - 72 : 56;
+        header.classList.toggle('is-solid', window.scrollY > threshold);
+      };
+      headerSync();
+      window.addEventListener('scroll', headerSync, { passive: true });
+      window.addEventListener('resize', headerSync, { passive: true });
+
+      // ---------- Reveal on scroll ----------
+      const reveal = (el) => {
+        el.classList.add('is-revealed');
+        el.style.setProperty('opacity', '1', 'important');
+        el.style.setProperty('transform', 'none', 'important');
+      };
+      const all = document.querySelectorAll('[data-reveal]');
+      // Stagger children of [data-stagger]
+      all.forEach((el) => {
+        if (!el.style.getPropertyValue('--reveal-delay')) {
+          const parent = el.parentElement;
+          if (parent && parent.hasAttribute('data-stagger')) {
+            const idx = Array.from(parent.children).indexOf(el);
+            el.style.setProperty('--reveal-delay', `${idx * 70}ms`);
+          }
+        }
+      });
+
+      if (reduceMotion) {
+        all.forEach(reveal);
+      } else {
+        const vh = window.innerHeight;
+        const deferred = [];
+        all.forEach((el) => {
+          if (el.getBoundingClientRect().top < vh) reveal(el);
+          else deferred.push(el);
+        });
+        if ('IntersectionObserver' in window && deferred.length) {
+          const io = new IntersectionObserver((entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) { reveal(e.target); io.unobserve(e.target); }
+            }
+          }, { threshold: 0.12, rootMargin: '0px 0px -5% 0px' });
+          deferred.forEach((el) => io.observe(el));
+        }
+        const onScroll = () => {
+          const vh2 = window.innerHeight;
+          let pending = false;
+          deferred.forEach((el) => {
+            if (el.classList.contains('is-revealed')) return;
+            pending = true;
+            if (el.getBoundingClientRect().top < vh2 - 40) reveal(el);
+          });
+          if (!pending) window.removeEventListener('scroll', onScroll);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+      }
+
+      // ---------- Count-up ----------
+      if (!reduceMotion) {
+        const animateCount = (el, delay) => {
+          if (el.dataset.counted === '1') return;
+          el.dataset.counted = '1';
+          const target = parseFloat(el.dataset.count || '0');
+          const suffix = el.dataset.suffix || '';
+          const prefix = el.dataset.prefix || '';
+          const dur = parseInt(el.dataset.duration || '1400', 10);
+          setTimeout(() => {
+            const start = performance.now();
+            const tick = (now) => {
+              const t = Math.min(1, (now - start) / dur);
+              const eased = 1 - Math.pow(1 - t, 3);
+              const value = target * eased;
+              const formatted = target % 1 === 0 ? Math.round(value).toString() : value.toFixed(1);
+              el.textContent = prefix + formatted + suffix;
+              if (t < 1) requestAnimationFrame(tick);
+              else el.classList.add('is-counting');
+            };
+            requestAnimationFrame(tick);
+          }, delay);
+        };
+        document.querySelectorAll('[data-count]').forEach((c, i) => animateCount(c, 200 + i * 120));
+      }
+
+      // ---------- Bento cursor spotlight ----------
+      if (!reduceMotion) {
+        document.querySelectorAll('.bento__card').forEach((card) => {
+          card.addEventListener('pointermove', (ev) => {
+            const r = card.getBoundingClientRect();
+            card.style.setProperty('--mx', ((ev.clientX - r.left) / r.width) * 100 + '%');
+            card.style.setProperty('--my', ((ev.clientY - r.top) / r.height) * 100 + '%');
+          });
+        });
+      }
+
+      // ---------- FAQ accordion ----------
+      document.querySelectorAll('.faq__item').forEach((item) => {
+        const btn = item.querySelector('.faq__q');
+        btn?.addEventListener('click', () => {
+          const open = item.hasAttribute('open');
+          if (open) item.removeAttribute('open');
+          else item.setAttribute('open', '');
+        });
+      });
+    </script>
+  </body>
+</html>
