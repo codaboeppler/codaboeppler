@@ -5,7 +5,7 @@
    colour tokens, so the dark-theme semantics would fight it. */
 import { siteConfig } from '../data/site';
 import Clarity from '../components/Clarity.astro';
-import Zendesk from '../components/Zendesk.astro';
+import WhatsApp from '../components/WhatsApp.astro';
 
 interface Props {
   title?: string;
@@ -59,12 +59,13 @@ const ogImage = new URL(siteConfig.ogImage, siteConfig.url).toString();
     />
 
     <Clarity />
-    <Zendesk />
     <slot name="head" />
   </head>
   <body>
     <a class="skip" href="#main">Saltar al contenido</a>
     <slot />
+    <!-- WhatsApp de ventas, siempre a la mano en la esquina inferior derecha -->
+    <WhatsApp en="flotante" />
   </body>
 </html>
 

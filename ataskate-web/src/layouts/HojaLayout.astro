@@ -1,7 +1,7 @@
 ---
 import { siteConfig } from '../data/site';
 import Clarity from '../components/Clarity.astro';
-import Zendesk from '../components/Zendesk.astro';
+import WhatsApp from '../components/WhatsApp.astro';
 import '../styles/global.css';
 
 interface Props { title?: string; description?: string; nav?: { href: string; label: string }[]; canonicalPath?: string; }
@@ -47,7 +47,6 @@ const canonical = new URL(canonicalPath, Astro.site ?? siteConfig.url).toString(
       })();
     </script>
     <Clarity />
-    <Zendesk />
   </head>
   <body id="inicio" class="hoja">
     <a href="#main" class="skip-link">Saltar al contenido</a>
@@ -279,5 +278,7 @@ const canonical = new URL(canonicalPath, Astro.site ?? siteConfig.url).toString(
         email?.addEventListener('input', () => field?.classList.remove('fld--error'));
       })();
     </script>
+    <!-- WhatsApp de ventas, siempre a la mano en la esquina inferior derecha -->
+    <WhatsApp en="flotante" />
   </body>
 </html>

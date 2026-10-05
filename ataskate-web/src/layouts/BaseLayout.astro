@@ -1,7 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Clarity from '../components/Clarity.astro';
-import Zendesk from '../components/Zendesk.astro';
+import WhatsApp from '../components/WhatsApp.astro';
 import Footer from '../components/Footer.astro';
 import { siteConfig, faqs } from '../data/site';
 import '../styles/global.css';
@@ -138,7 +138,6 @@ const jsonLdGraph = {
       })();
     </script>
     <Clarity />
-    <Zendesk />
   </head>
   <body id="top">
     <a href="#main" class="skip-link">Saltar al contenido</a>
@@ -263,5 +262,7 @@ const jsonLdGraph = {
         });
       });
     </script>
+    <!-- WhatsApp de ventas, siempre a la mano en la esquina inferior derecha -->
+    <WhatsApp en="flotante" />
   </body>
 </html>
