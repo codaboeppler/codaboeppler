@@ -1,7 +1,7 @@
 ---
 /* ============================================================
    Landing ataskate — implementation of the "Landing ataskate"
-   Claude Design mockup (project "ataskate landing mockup").
+   design mockup.
    Colours, type, spacing and copy come straight from the source
    template; the inline styles were re-expressed as scoped CSS and
    the DC template state (accordions, price toggle, parallax,
@@ -567,12 +567,9 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
           data-mail={contacto.email}
           novalidate
         >
+          <!-- Mismos datos y mismo orden que pide ventas en "Generar código de invitación" -->
           <div class="cta__field">
-            <label for="cta-nombre">Nombre</label>
-            <input id="cta-nombre" name="nombre" type="text" placeholder="Mariana Quintero" autocomplete="name" required />
-          </div>
-          <div class="cta__field">
-            <label for="cta-negocio">Nombre de negocio</label>
+            <label for="cta-negocio">Empresa</label>
             <input id="cta-negocio" name="negocio" type="text" placeholder="Empeños del Centro" autocomplete="organization" required />
           </div>
           <div class="cta__field">
@@ -593,15 +590,19 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
             />
           </div>
           <div class="cta__field">
-            <label for="cta-email">Correo</label>
+            <label for="cta-nombre">Nombre del Cliente</label>
+            <input id="cta-nombre" name="nombre" type="text" placeholder="Mariana Quintero" autocomplete="name" required />
+          </div>
+          <div class="cta__field">
+            <label for="cta-email">Correo electrónico</label>
             <input id="cta-email" name="correo" type="email" placeholder="mariana@empenosdelcentro.mx" autocomplete="email" required />
           </div>
           <div class="cta__field">
-            <label for="cta-tel">Teléfono o WhatsApp <span class="cta__opt">(Opcional)</span></label>
-            <input id="cta-tel" name="telefono" type="tel" placeholder="55 1234 5678" autocomplete="tel" inputmode="tel" />
+            <label for="cta-tel">Teléfono</label>
+            <input id="cta-tel" name="telefono" type="tel" placeholder="5512345678" autocomplete="tel" inputmode="tel" minlength="10" maxlength="20" data-tel required />
           </div>
           <div class="cta__field">
-            <label for="cta-suc">Número de sucursales</label>
+            <label for="cta-suc">No. Sucursales</label>
             <input
               id="cta-suc"
               name="sucursales"
@@ -2097,7 +2098,6 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
   .cta__field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .cta__field--full { grid-column: 1 / -1; }
   .cta__field label { font-size: 13px; font-weight: 800; color: var(--ink); padding-left: 8px; }
-  .cta__opt { font-weight: 600; color: var(--body); }
   .cta__form input {
     width: 100%;
     height: 50px;
@@ -3084,10 +3084,13 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
     }
     suc.setCustomValidity('');
   });
+  // Teléfono: se acepta con espacios, guiones o lada (+52), pero debe traer al menos 10 dígitos
+  const tel = demo?.querySelector<HTMLInputElement>('[data-tel]');
+  tel?.addEventListener('input', () => tel.setCustomValidity(''));
   const mailtoDemo = (d: ReturnType<typeof datosDemo>) => {
     const subject = encodeURIComponent('Solicitud de demo — ataskate');
     const body = encodeURIComponent(
-      `Hola, quiero una demo de ataskate.\n\nNombre: ${d.nombre}\nNombre de negocio: ${d.negocio}\nRFC: ${d.rfc}\nCorreo: ${d.correo}\nTeléfono: ${d.telefono}\nSucursales: ${d.sucursales}\n`,
+      `Hola, quiero una demo de ataskate.\n\nEmpresa: ${d.negocio}\nRFC: ${d.rfc}\nNombre del Cliente: ${d.nombre}\nCorreo electrónico: ${d.correo}\nTeléfono: ${d.telefono}\nNo. Sucursales: ${d.sucursales}\n`,
     );
     return `mailto:${demo?.dataset.mail || ''}?subject=${subject}&body=${body}`;
   };
@@ -3103,6 +3106,12 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
         el.setCustomValidity('');
         if (el.validity.patternMismatch || el.validity.tooShort) {
           el.setCustomValidity('Escribe un RFC válido de 12 o 13 caracteres, por ejemplo EDC850101AB1.');
+        }
+      }
+      if (el === tel) {
+        el.setCustomValidity('');
+        if (el.value.replace(/\D/g, '').length < 10) {
+          el.setCustomValidity('Escribe un teléfono de 10 dígitos, por ejemplo 5512345678.');
         }
       }
       if (el === suc) {

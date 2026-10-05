@@ -20,12 +20,14 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 const limpio = (v, max) => String(v ?? '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, max);
 const NU = "'Nunito',Arial,sans-serif";
 
+// Mismos datos y mismo orden que pide ventas en "Generar código de invitación"
 const CAMPOS = [
-  ['nombre', 'Nombre'],
-  ['negocio', 'Nombre de negocio'],
-  ['correo', 'Correo'],
-  ['telefono', 'Teléfono / WhatsApp'],
-  ['sucursales', 'Sucursales'],
+  ['negocio', 'Empresa'],
+  ['rfc', 'RFC'],
+  ['nombre', 'Nombre del Cliente'],
+  ['correo', 'Correo electrónico'],
+  ['telefono', 'Teléfono'],
+  ['sucursales', 'No. Sucursales'],
   ['mensaje', 'Mensaje'],
   ['pagina', 'Página'],
 ];
@@ -61,14 +63,20 @@ export default async (req) => {
   const d = {
     nombre: limpio(b.nombre, 120),
     negocio: limpio(b.negocio, 120),
+    rfc: limpio(b.rfc, 20).toUpperCase().replace(/[\s-]/g, ''),
     correo: limpio(b.correo, 160),
     telefono: limpio(b.telefono, 40),
     sucursales: limpio(b.sucursales, 20),
     mensaje: String(b.mensaje ?? '').trim().slice(0, 1500),
     pagina: limpio(b.pagina, 300),
   };
+  if (!d.negocio) return json({ ok: false, error: 'Falta la empresa' }, 400);
   if (!d.nombre) return json({ ok: false, error: 'Falta el nombre' }, 400);
+  // RFC obligatorio: 3 letras (moral) o 4 (física) + fecha AAMMDD + homoclave
+  if (!/^[A-ZÑ&]{3,4}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[A-Z\d]{2}[A\d]$/.test(d.rfc)) return json({ ok: false, error: 'RFC inválido' }, 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.correo)) return json({ ok: false, error: 'Correo inválido' }, 400);
+  if (d.telefono.replace(/\D/g, '').length < 10) return json({ ok: false, error: 'Teléfono inválido' }, 400);
+  if (!/^[1-9]\d{0,3}$/.test(d.sucursales)) return json({ ok: false, error: 'Número de sucursales inválido' }, 400);
 
   const key = process.env.RESEND_API_KEY;
   if (!key) return json({ ok: true, simulado: true });
