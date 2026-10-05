@@ -570,7 +570,7 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
           <!-- Mismos datos y mismo orden que pide ventas en "Generar código de invitación" -->
           <div class="cta__field">
             <label for="cta-negocio">Empresa</label>
-            <input id="cta-negocio" name="negocio" type="text" placeholder="Empeños del Centro" autocomplete="organization" required />
+            <input id="cta-negocio" name="negocio" type="text" placeholder="Escribe tu empresa" autocomplete="organization" required />
           </div>
           <div class="cta__field">
             <label for="cta-rfc">RFC</label>
@@ -578,7 +578,7 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
               id="cta-rfc"
               name="rfc"
               type="text"
-              placeholder="EDC850101AB1"
+              placeholder="Escribe tu RFC"
               autocomplete="off"
               autocapitalize="characters"
               spellcheck="false"
@@ -591,15 +591,15 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
           </div>
           <div class="cta__field">
             <label for="cta-nombre">Nombre del Cliente</label>
-            <input id="cta-nombre" name="nombre" type="text" placeholder="Mariana Quintero" autocomplete="name" required />
+            <input id="cta-nombre" name="nombre" type="text" placeholder="Escribe tu nombre" autocomplete="name" required />
           </div>
           <div class="cta__field">
             <label for="cta-email">Correo electrónico</label>
-            <input id="cta-email" name="correo" type="email" placeholder="mariana@empenosdelcentro.mx" autocomplete="email" required />
+            <input id="cta-email" name="correo" type="email" placeholder="Escribe tu correo" autocomplete="email" required />
           </div>
           <div class="cta__field">
             <label for="cta-tel">Teléfono</label>
-            <input id="cta-tel" name="telefono" type="tel" placeholder="5512345678" autocomplete="tel" inputmode="tel" minlength="10" maxlength="20" data-tel required />
+            <input id="cta-tel" name="telefono" type="tel" placeholder="Escribe tus 10 dígitos" autocomplete="tel" inputmode="tel" minlength="10" maxlength="20" data-tel required />
           </div>
           <div class="cta__field">
             <label for="cta-suc">No. Sucursales</label>
@@ -608,7 +608,7 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
               name="sucursales"
               type="text"
               inputmode="numeric"
-              placeholder="3"
+              placeholder="Escribe un número"
               autocomplete="off"
               maxlength="4"
               pattern="[1-9][0-9]{0,3}"
@@ -2113,6 +2113,7 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
     transition: box-shadow 0.15s;
   }
   .cta__form input[data-rfc] { text-transform: uppercase; }
+  .cta__form input[data-rfc]::placeholder { text-transform: none; }
   .cta__form input::placeholder { color: var(--placeholder); }
   .cta__form input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--navy); }
   .cta__form input[aria-invalid='true'] { box-shadow: inset 0 0 0 2px #a82424; }
