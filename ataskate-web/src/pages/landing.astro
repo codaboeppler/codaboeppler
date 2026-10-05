@@ -3073,11 +3073,15 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
     }
     rfc.setCustomValidity('');
   });
-  // Sucursales: se escribe a mano; solo dígitos y sin ceros a la izquierda, que es como lo valida el pattern
+  // Sucursales: se escribe a mano y solo admite dígitos; los ceros a la izquierda se quitan al enviar, no mientras se edita
   const suc = demo?.querySelector<HTMLInputElement>('[data-suc]');
   suc?.addEventListener('input', () => {
-    const limpio = suc.value.replace(/\D/g, '').replace(/^0+/, '');
-    if (limpio !== suc.value) suc.value = limpio;
+    const limpio = suc.value.replace(/\D/g, '');
+    if (limpio !== suc.value) {
+      const fin = Math.max(0, (suc.selectionStart ?? suc.value.length) - (suc.value.length - limpio.length));
+      suc.value = limpio;
+      suc.setSelectionRange(fin, fin);
+    }
     suc.setCustomValidity('');
   });
   const mailtoDemo = (d: ReturnType<typeof datosDemo>) => {
@@ -3102,6 +3106,7 @@ const CONTACTO_API = 'https://ataskate-marketplace-preview.netlify.app/api/envia
         }
       }
       if (el === suc) {
+        el.value = el.value.replace(/^0+(?=\d)/, '');
         el.setCustomValidity('');
         if (el.validity.valueMissing || el.validity.patternMismatch) {
           el.setCustomValidity('Escribe cuántas sucursales tienes, por ejemplo 3.');

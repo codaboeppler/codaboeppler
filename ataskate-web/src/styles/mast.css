@@ -80,12 +80,17 @@
   /* 40px tap targets on touch. */
   .mast__nav a { padding: 10px 12px; }
 }
+/* Tablet en vertical: con el icono de WhatsApp ya no caben "Inicia sesión" y "Crear cuenta" en un renglón;
+   los dos llevan al mismo lugar, se queda el botón. (El landing ya lo oculta: ahí manda el menú hamburguesa.) */
+@media (min-width: 721px) and (max-width: 820px) {
+  .mast__bar:not(:has(.mast__burger)) .mast__login { display: none; }
+}
 /* Con el icono de WhatsApp a la vista, es él quien empuja el grupo a la derecha. */
-@media (min-width: 421px) and (max-width: 720px) {
+@media (min-width: 400px) and (max-width: 720px) {
   .mast__bar:not(:has(.mast__burger)) .mast__wa { margin-left: auto; }
   .mast__bar:not(:has(.mast__burger)) .mast__wa ~ .mast__cta { margin-left: 0; }
 }
-/* En teléfonos angostos el icono ya no cabe junto a la marca y "Crear cuenta": ahí WhatsApp queda en el botón flotante. */
-@media (max-width: 420px) {
+/* Por debajo de 400px el icono ya no cabe junto a la marca, "Crear cuenta" y el menú: ahí WhatsApp queda en el botón flotante. */
+@media (max-width: 399px) {
   .mast__wa { display: none; }
 }
